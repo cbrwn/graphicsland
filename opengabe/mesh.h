@@ -13,7 +13,8 @@ public:
 		glm::vec2 texCoord;
 	};
 
-	virtual void draw();
+	virtual void draw();
+
 protected:
 	unsigned int triCount;
 	// opengl object pointers

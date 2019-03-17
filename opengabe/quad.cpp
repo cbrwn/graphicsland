@@ -21,7 +21,16 @@ Quad::Quad()
 	vertices[2].position = { 0.5f, 0.0f, 0.5f, 1.0f };
 	vertices[3].position = { 0.5f, 0.0f, -0.5f, 1.0f };
 
+	vertices[0].normal = { 0.0f, 1.0f, 0.0f, 0.0f };
+	vertices[1].normal = { 0.0f, 1.0f, 0.0f, 0.0f };
+	vertices[2].normal = { 0.0f, 1.0f, 0.0f, 0.0f };
+	vertices[3].normal = { 0.0f, 1.0f, 0.0f, 0.0f };
+
 	glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(float)*4));
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
