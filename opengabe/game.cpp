@@ -64,21 +64,31 @@ int Game::init(char const* title, int width, int height)
 		glfwSetWindowPos(m_window, videoMode->width / 2 - width / 2, videoMode->height / 2 - width / 2);
 	}
 
-//#ifdef _WIN32
-//	// hide window from taskbar
-//	HWND winHandle = glfwGetWin32Window(m_window);
-//
-//	long style = GetWindowLong(winHandle, GWL_STYLE);
-//	style |= WS_EX_TOOLWINDOW;
-//
-//	ShowWindow(winHandle, SW_HIDE);
-//	SetWindowLong(winHandle, GWL_STYLE, style);
-//	ShowWindow(winHandle, SW_SHOW);
-//#endif
+	//#ifdef _WIN32
+	//	// hide window from taskbar
+	//	HWND winHandle = glfwGetWin32Window(m_window);
+	//
+	//	long style = GetWindowLong(winHandle, GWL_STYLE);
+	//	style |= WS_EX_TOOLWINDOW;
+	//
+	//	ShowWindow(winHandle, SW_HIDE);
+	//	SetWindowLong(winHandle, GWL_STYLE, style);
+	//	ShowWindow(winHandle, SW_SHOW);
+	//#endif
 
 	m_viewMatrix = glm::lookAt(
 		glm::vec3(15), glm::vec3(0), glm::vec3(0, 1, 0)
 	);
+
+	int w, h;
+	glfwGetWindowSize(m_window, &w, &h);
+	m_projectionMatrix =
+		glm::perspective(
+			glm::pi<float>() * 0.25f,
+			w / (float)h,
+			0.1f,
+			1000.f
+		);
 
 	m_cube = new Cube();
 
@@ -112,15 +122,6 @@ void Game::draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	int w, h;
-	glfwGetWindowSize(m_window, &w, &h);
-	m_projectionMatrix =
-		glm::perspective(
-			glm::pi<float>() * 0.25f,
-			w / (float)h,
-			0.1f,
-			1000.f
-		);
 
 	glm::vec3 camPos = glm::vec3(sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
 	//glm::vec3 camPos = glm::vec3(15.0f);
@@ -129,15 +130,13 @@ void Game::draw()
 	);
 
 	glm::mat4 quadTransform = glm::mat4(1);
-	quadTransform = glm::scale(quadTransform, { 7,7,7});
+	quadTransform = glm::scale(quadTransform, { 7,7,7 });
 	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
 
-	//glm::mat4 mvp = m_projectionMatrix * m_viewMatrix * quadTransform;
-	m_shader->bindUniform(m_shader->getUniform("M"), quadTransform);
-	m_shader->bindUniform(m_shader->getUniform("V"), m_viewMatrix);
-	m_shader->bindUniform(m_shader->getUniform("P"), m_projectionMatrix);
-	m_shader->bindUniform(m_shader->getUniform("timer"), m_timer);
-	//m_shader->bindUniform(m_shader->getUniform("LightPos"), camPos);
+	m_shader->bindUniform("M", quadTransform)
+		->bindUniform("V", m_viewMatrix)
+		->bindUniform("P", m_projectionMatrix)
+		->bindUniform("timer", m_timer);
 
 	m_cube->draw();
 

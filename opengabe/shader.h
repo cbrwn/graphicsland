@@ -56,9 +56,15 @@ public:
 	int getUniform(const char* name);
 
 	// bind uniforms!
-	void bindUniform(int ID, const float value);
-	void bindUniform(int ID, const glm::vec3& value);
-	void bindUniform(int ID, const glm::mat4& value);
+	// these all return a pointer to this object to make chaining possible
+	ShaderProgram* bindUniform(int ID, const float value);
+	ShaderProgram* bindUniform(int ID, const glm::vec3& value);
+	ShaderProgram* bindUniform(int ID, const glm::mat4& value);
+
+	// bind using uniform name
+	ShaderProgram* bindUniform(const char* name, const float value);
+	ShaderProgram* bindUniform(const char* name, const glm::vec3& value);
+	ShaderProgram* bindUniform(const char* name, const glm::mat4& value);
 
 private:
 	unsigned int m_handle;

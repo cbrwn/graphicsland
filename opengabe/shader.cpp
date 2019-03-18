@@ -198,19 +198,55 @@ int ShaderProgram::getUniform(const char* name)
 	return glGetUniformLocation(m_handle, name);
 }
 
-void ShaderProgram::bindUniform(int ID, const float value)
+//----------------------------
+// bind float by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 {
 	glUniform1fv(ID, 1, &value);
+	return this;
 }
 
-void ShaderProgram::bindUniform(int ID, const glm::vec3& value)
+//----------------------------
+// bind vec3 by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
 {
 	glUniform3f(ID, value.x, value.y, value.z);
+	return this;
 }
 
-void ShaderProgram::bindUniform(int ID, const glm::mat4& value)
+//----------------------------
+// bind mat4 by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::mat4& value)
 {
 	glUniformMatrix4fv(ID, 1, GL_FALSE, &value[0][0]);
+	return this;
+}
+
+//----------------------------
+// bind float by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const float value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind vec3 by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec3& value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind mat4 by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::mat4& value)
+{
+	return bindUniform(getUniform(name), value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
