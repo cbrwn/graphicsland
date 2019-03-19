@@ -113,7 +113,7 @@ void main() {
     vec3 marchPoint = rayOrigin + (rayDir*march);
     float diffuse = getLight(marchPoint);
 
-    vec3 col = vec3(diffuse);
+    vec3 col = vec3(1,1,1) * diffuse;
     col += vec3(0.1);
 
     fragColor =  vec4(col,1.0);

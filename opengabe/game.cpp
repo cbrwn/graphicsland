@@ -36,7 +36,7 @@ int Game::init(char const* title, int width, int height)
 	if (!glfwInit())
 		return 1;
 
-	//glfwWindowHint(GLFW_DECORATED, false);
+	glfwWindowHint(GLFW_DECORATED, false);
 	//glfwWindowHint(GLFW_FLOATING, true);
 	//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
 	m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -55,14 +55,14 @@ int Game::init(char const* title, int width, int height)
 		return 3;
 	}
 
-	int monitorCount;
-	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
-	if (monitorCount > 1)
-	{
-		GLFWmonitor* monitor = monitors[0];
-		const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
-		glfwSetWindowPos(m_window, videoMode->width / 2 - width / 2, videoMode->height / 2 - width / 2);
-	}
+	//int monitorCount;
+	//GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+	//if (monitorCount > 1)
+	//{
+	//	GLFWmonitor* monitor = monitors[0];
+	//	const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+	//	glfwSetWindowPos(m_window, videoMode->width / 2 - width / 2, videoMode->height / 2 - width / 2);
+	//}
 
 	//#ifdef _WIN32
 	//	// hide window from taskbar
