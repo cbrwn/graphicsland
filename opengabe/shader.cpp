@@ -208,6 +208,15 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 }
 
 //----------------------------
+// bind vec2 by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec2& value)
+{
+	glUniform2f(ID, value.x, value.y);
+	return this;
+}
+
+//----------------------------
 // bind vec3 by ID
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
@@ -229,6 +238,14 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::mat4& value)
 // bind float by name
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(const char* name, const float value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind vec3 by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec2& value)
 {
 	return bindUniform(getUniform(name), value);
 }

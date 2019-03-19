@@ -9,7 +9,6 @@ uniform mat4 P;
 uniform vec3 LightPos;
 uniform float timer;
 
-out vec3 vertNormal;
 out vec3 vertPos;
 out vec3 lightPos;
 out vec3 viewPos;

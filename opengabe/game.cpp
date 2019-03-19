@@ -76,8 +76,10 @@ int Game::init(char const* title, int width, int height)
 	//	ShowWindow(winHandle, SW_SHOW);
 	//#endif
 
+	// create framebuffer
+
 	m_viewMatrix = glm::lookAt(
-		glm::vec3(15), glm::vec3(0), glm::vec3(0, 1, 0)
+		glm::vec3(7, 0, 0), glm::vec3(0), glm::vec3(0, 1, 0)
 	);
 
 	int w, h;
@@ -93,12 +95,22 @@ int Game::init(char const* title, int width, int height)
 	m_cube = new Cube();
 
 	m_shader = new ShaderProgram();
-	m_shader->loadShader(ShaderStage::VERTEX, "shaders/basic.vert");
-	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/basic.frag");
+	m_shader->loadShader(ShaderStage::VERTEX, "shaders/raymarch.vert");
+	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/raymarch.frag");
 	m_shader->link();
 
 	m_shader->use();
 	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 10.0f, 10.0f, 10.0f });
+	m_shader->bindUniform(m_shader->getUniform("CamPos"), { 10.0f, 10.0f, 10.0f });
+
+	glm::mat4 quadTransform = glm::mat4(1);
+	quadTransform = glm::scale(quadTransform, { 7,7,7 });
+	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
+
+	m_shader->bindUniform("M", quadTransform)
+		->bindUniform("V", m_viewMatrix)
+		->bindUniform("P", m_projectionMatrix)
+		->bindUniform("Resolution", glm::vec2(width, height));
 
 	return 0;
 }
@@ -122,21 +134,26 @@ void Game::draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//glm::vec3 camPos = glm::vec3(sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
+	////glm::vec3 camPos = glm::vec3(15.0f);
+	//m_viewMatrix = glm::lookAt(
+	//	camPos, glm::vec3(0), glm::vec3(0, 1, 0)
+	//);
 
-	glm::vec3 camPos = glm::vec3(sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
-	//glm::vec3 camPos = glm::vec3(15.0f);
-	m_viewMatrix = glm::lookAt(
-		camPos, glm::vec3(0), glm::vec3(0, 1, 0)
-	);
+	//glm::mat4 quadTransform = glm::mat4(1);
+	//quadTransform = glm::scale(quadTransform, { 7,7,7 });
+	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
 
-	glm::mat4 quadTransform = glm::mat4(1);
-	quadTransform = glm::scale(quadTransform, { 7,7,7 });
-	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
+	//m_shader->bindUniform("M", quadTransform)
+	//	->bindUniform("V", m_viewMatrix)
+	//	->bindUniform("P", m_projectionMatrix)
+	//	->bindUniform("timer", m_timer);
 
-	m_shader->bindUniform("M", quadTransform)
-		->bindUniform("V", m_viewMatrix)
-		->bindUniform("P", m_projectionMatrix)
-		->bindUniform("timer", m_timer);
+	m_shader->bindUniform(m_shader->getUniform("LightPos"),
+		{ sinf(m_timer*2.0f)*10.0f, 10.0f, cosf(m_timer*2.0f)*10.0f
+		});
+	m_shader->bindUniform(m_shader->getUniform("Time"),
+		m_timer);
 
 	m_cube->draw();
 
