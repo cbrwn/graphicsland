@@ -36,7 +36,7 @@ int Game::init(char const* title, int width, int height)
 	if (!glfwInit())
 		return 1;
 
-	glfwWindowHint(GLFW_DECORATED, false);
+	//glfwWindowHint(GLFW_DECORATED, false);
 	//glfwWindowHint(GLFW_FLOATING, true);
 	//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
 	m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -100,8 +100,9 @@ int Game::init(char const* title, int width, int height)
 	m_shader->link();
 
 	m_shader->use();
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 10.0f, 10.0f, 10.0f });
+	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 0.0f, 10.0f, 0.0f });
 	m_shader->bindUniform(m_shader->getUniform("CamPos"), { 10.0f, 10.0f, 10.0f });
+	m_shader->bindUniform(m_shader->getUniform("CamDir"), { 0.0f, -0.2f, 1.0f });
 
 	glm::mat4 quadTransform = glm::mat4(1);
 	quadTransform = glm::scale(quadTransform, { 7,7,7 });
@@ -120,7 +121,7 @@ void Game::loop()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
 
 	while (!glfwWindowShouldClose(m_window))
 	{
@@ -149,11 +150,13 @@ void Game::draw()
 	//	->bindUniform("P", m_projectionMatrix)
 	//	->bindUniform("timer", m_timer);
 
-	m_shader->bindUniform(m_shader->getUniform("LightPos"),
-		{ sinf(m_timer*2.0f)*10.0f, 10.0f, cosf(m_timer*2.0f)*10.0f
-		});
+	//m_shader->bindUniform(m_shader->getUniform("LightPos"),
+	//	{ sinf(m_timer*2.0f)*10.0f, 10.0f, cosf(m_timer*2.0f)*10.0f
+	//	});
 	m_shader->bindUniform(m_shader->getUniform("Time"),
 		m_timer);
+
+	m_shader->bindUniform(m_shader->getUniform("CamDir"), { sin(m_timer), -0.2f, cos(m_timer) });
 
 	m_cube->draw();
 
