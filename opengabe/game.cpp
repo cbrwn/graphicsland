@@ -94,6 +94,7 @@ int Game::init(char const* title, int width, int height)
 			1000.f
 		);
 
+
 	m_cube = new Cube();
 
 	m_shader = new ShaderProgram();
@@ -101,12 +102,14 @@ int Game::init(char const* title, int width, int height)
 	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/raymarch.frag");
 	m_shader->link();
 
+	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* a, int w, int h) {
+		glViewport(0, 0, w, h);
+	});
+
 	m_shader->use();
 	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 5.0f, 10.0f, 5.0f });
 
 	camMatrix = glm::mat4(1);
-	camMatrix = glm::translate(camMatrix, { 0,4,0 });
-	camMatrix = glm::rotate(camMatrix, 0.2f, { 1,0,0 });
 	camPos = { 0,4,0 };
 
 	m_shader->bindUniform("CamTransform", camMatrix);
@@ -146,6 +149,9 @@ void Game::draw()
 	//test = glm::rotate(test, 0.01f, { 0,1,0 });
 	//camMatrix = test * camMatrix;
 
+	int w, h;
+	glfwGetWindowSize(m_window, &w, &h);
+	m_shader->bindUniform("Resolution", glm::vec2(w, h));
 	m_shader->bindUniform(m_shader->getUniform("Time"),
 		m_timer);
 	m_shader->bindUniform("CamTransform", camMatrix);
@@ -184,9 +190,12 @@ void Game::update(float delta)
 	double _mx, _my;
 	glfwGetCursorPos(m_window, &_mx, &_my);
 
-	const float sens = 0.005f;
-	m_rotY += (float)(_mx - m_px)*sens;
-	m_rotX += (float)(_my - m_py)*sens;
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS)
+	{
+		const float sens = 0.005f;
+		m_rotY += (float)(_mx - m_px)*sens;
+		m_rotX += (float)(_my - m_py)*sens;
+	}
 
 	m_px = _mx;
 	m_py = _my;
@@ -199,6 +208,6 @@ void Game::update(float delta)
 
 	glm::mat4 trans(1);
 	trans = glm::translate(trans, camPos);
-	camMatrix = trans*rot;
+	camMatrix = trans * rot;
 
 }

@@ -24,6 +24,17 @@ vec4 maxw(vec4 a, vec4 b) {
 	return b;
 }
 
+vec4 octahedronDist( vec3 p, vec3 pos, float s)
+{
+	p = pos - p;
+
+    p = abs(p);
+    float dist = (p.x+p.y+p.z-s)*0.57735027;
+
+	return vec4(0.3, 0.8, 0.8, dist);
+}
+
+
 vec4 torusDist(vec3 pos, vec3 torusPos) {
     vec2 torusSize = vec2(1.0,0.3 * (sin(Time*2.8) + 2.3));
 
@@ -57,6 +68,7 @@ vec4 sphereDist(vec3 pos, vec3 spherePos) {
     result -= sphereRad;
 	return vec4(0.4, 0.5, 1.0, result);
 }
+
 
 vec4 groundDist(vec3 pos) {
 	vec3 col = vec3(0.5, 1.0, 0.4);
