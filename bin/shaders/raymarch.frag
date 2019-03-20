@@ -5,7 +5,7 @@
 #define HIT_DIST 0.01
 
 uniform vec3 Color;
-uniform vec3 CamPos;
+uniform mat4 CamTransform;
 uniform vec3 LightPos;
 uniform vec2 Resolution;
 uniform float Time;
@@ -24,10 +24,8 @@ vec4 maxw(vec4 a, vec4 b) {
 	return b;
 }
 
-vec4 torusDist(vec3 pos) {
-    // temporary torus info
-    vec3 torusPos = vec3(sin(Time*1.3),1,5 + sin(Time*1.7));
-    vec2 torusSize = vec2(1.0,0.3 * (sin(Time*3.8) + 1.3));
+vec4 torusDist(vec3 pos, vec3 torusPos) {
+    vec2 torusSize = vec2(1.0,0.3 * (sin(Time*2.8) + 2.3));
 
     vec3 t = pos - torusPos;
 
@@ -50,9 +48,7 @@ vec4 boxDist(vec3 pos) {
 	return vec4(1, 0.4, 0.5, dist - sin(Time*11 + pos.x)*0.5);
 }
 
-vec4 sphereDist(vec3 pos) {
-    // temporary sphere info
-    vec3 spherePos = vec3(-1,1,5);
+vec4 sphereDist(vec3 pos, vec3 spherePos) {
     float sphereRad = 1.0;
 
     // get distance to sphere
@@ -72,10 +68,11 @@ vec4 groundDist(vec3 pos) {
 
 vec4 getDist(vec3 p) {
     return minw(
-        maxw(sphereDist(p), -torusDist(p)), 
+        maxw(sphereDist(p, vec3(0,1,5)), -torusDist(p, vec3(0,2,5))), 
         minw(groundDist(p),
-            maxw(boxDist(p), -torusDist(p))
-        )
+            minw(boxDist(p),
+				maxw(sphereDist(p, vec3(3,1,5)), torusDist(p, vec3(3,2,5) ) )
+        ))
     );
 }
 
@@ -130,9 +127,9 @@ float getLight(vec3 point) {
 void main() {
     vec2 uv = (gl_FragCoord.xy - (Resolution*0.5))/Resolution.y;
 
-    vec3 rayOrigin = vec3(sin(0) * 1.5,3,0+Time*0);
+    vec3 rayOrigin = CamTransform[3].xyz;
 
-    vec3 rayDir = normalize(vec3(uv.xy + vec2(0,-0.2), 1));
+    vec3 rayDir = CamTransform[2].xyz + (uv.x * CamTransform[0].xyz) + (uv.y * CamTransform[1].xyz);
 
     // get distance to intersection
     vec4 march = rayMarch(rayOrigin, rayDir);

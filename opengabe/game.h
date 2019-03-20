@@ -29,4 +29,9 @@ private:
 
 	Cube *m_cube;
 	ShaderProgram *m_shader;
+
+	glm::mat4 camMatrix;
+	double m_px, m_py;
+	glm::vec3 camPos;
+	float m_rotX, m_rotY;
 };

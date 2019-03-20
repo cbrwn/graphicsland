@@ -55,6 +55,8 @@ int Game::init(char const* title, int width, int height)
 		return 3;
 	}
 
+	glfwGetCursorPos(m_window, &m_px, &m_py);
+
 	//int monitorCount;
 	//GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
 	//if (monitorCount > 1)
@@ -100,13 +102,18 @@ int Game::init(char const* title, int width, int height)
 	m_shader->link();
 
 	m_shader->use();
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 0.0f, 10.0f, 0.0f });
-	m_shader->bindUniform(m_shader->getUniform("CamPos"), { 10.0f, 10.0f, 10.0f });
-	m_shader->bindUniform(m_shader->getUniform("CamDir"), { 0.0f, -0.2f, 1.0f });
+	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 5.0f, 10.0f, 5.0f });
+
+	camMatrix = glm::mat4(1);
+	camMatrix = glm::translate(camMatrix, { 0,4,0 });
+	camMatrix = glm::rotate(camMatrix, 0.2f, { 1,0,0 });
+	camPos = { 0,4,0 };
+
+	m_shader->bindUniform("CamTransform", camMatrix);
 
 	glm::mat4 quadTransform = glm::mat4(1);
 	quadTransform = glm::scale(quadTransform, { 7,7,7 });
-	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
+	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
 
 	m_shader->bindUniform("M", quadTransform)
 		->bindUniform("V", m_viewMatrix)
@@ -135,28 +142,13 @@ void Game::draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//glm::vec3 camPos = glm::vec3(sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
-	////glm::vec3 camPos = glm::vec3(15.0f);
-	//m_viewMatrix = glm::lookAt(
-	//	camPos, glm::vec3(0), glm::vec3(0, 1, 0)
-	//);
+	//glm::mat4 test(1);
+	//test = glm::rotate(test, 0.01f, { 0,1,0 });
+	//camMatrix = test * camMatrix;
 
-	//glm::mat4 quadTransform = glm::mat4(1);
-	//quadTransform = glm::scale(quadTransform, { 7,7,7 });
-	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
-
-	//m_shader->bindUniform("M", quadTransform)
-	//	->bindUniform("V", m_viewMatrix)
-	//	->bindUniform("P", m_projectionMatrix)
-	//	->bindUniform("timer", m_timer);
-
-	//m_shader->bindUniform(m_shader->getUniform("LightPos"),
-	//	{ sinf(m_timer*2.0f)*10.0f, 10.0f, cosf(m_timer*2.0f)*10.0f
-	//	});
 	m_shader->bindUniform(m_shader->getUniform("Time"),
 		m_timer);
-
-	m_shader->bindUniform(m_shader->getUniform("CamDir"), { sin(m_timer), -0.2f, cos(m_timer) });
+	m_shader->bindUniform("CamTransform", camMatrix);
 
 	m_cube->draw();
 
@@ -169,4 +161,44 @@ void Game::update(float delta)
 		glfwSetWindowShouldClose(m_window, true);
 
 	m_timer += delta;
+
+	// camera movement
+	glm::vec4 movement = { 0,0,0, 0 };
+	if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+		movement += camMatrix[2];
+	if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+		movement -= camMatrix[2];
+	if (glfwGetKey(m_window, GLFW_KEY_E) == GLFW_PRESS)
+		movement += camMatrix[1];
+	if (glfwGetKey(m_window, GLFW_KEY_Q) == GLFW_PRESS)
+		movement -= camMatrix[1];
+	if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+		movement += camMatrix[0];
+	if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+		movement -= camMatrix[0];
+	if (glm::length(movement) > 0.01f)
+		movement = glm::normalize(movement);
+	//camMatrix = glm::translate(camMatrix, glm::vec3(movement) * delta * 10.0f);
+	camPos += glm::vec3(movement) * delta * 10.0f;
+
+	double _mx, _my;
+	glfwGetCursorPos(m_window, &_mx, &_my);
+
+	const float sens = 0.005f;
+	m_rotY += (float)(_mx - m_px)*sens;
+	m_rotX += (float)(_my - m_py)*sens;
+
+	m_px = _mx;
+	m_py = _my;
+
+	glm::mat4 rotx(1);
+	glm::mat4 roty(1);
+	rotx = glm::rotate(rotx, m_rotX, { 1,0,0 });
+	roty = glm::rotate(roty, m_rotY, { 0,1,0 });
+	glm::mat4 rot = roty * rotx;
+
+	glm::mat4 trans(1);
+	trans = glm::translate(trans, camPos);
+	camMatrix = trans*rot;
+
 }
