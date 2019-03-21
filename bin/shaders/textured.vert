@@ -2,6 +2,7 @@
 
 layout(location=0)in vec4 Position;
 layout(location=1)in vec3 Normal;
+layout(location=2)in vec2 TexCoord;
 
 uniform mat4 M;
 uniform mat4 V;
@@ -13,17 +14,22 @@ out vec3 vertNormal;
 out vec3 vertPos;
 out vec3 lightPos;
 out vec3 viewPos;
+out vec2 uv;
 
 void main() {
     vec4 pos = MVP * Position;
 
-    vertNormal = normalize((V*M*vec4(Normal,1)).xyz);
+	mat3 rot = mat3(M);
+
+    vertNormal = normalize(rot*Normal);
 
     gl_Position = pos;
 
     vertPos = gl_Position.xyz;
 
-    lightPos = (V*vec4(LightPos,1)).xyz;
+    lightPos = LightPos;
 
     viewPos = (inverse(V)[3]).xyz;
+
+	uv = TexCoord;
 }

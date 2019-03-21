@@ -5,6 +5,8 @@
 struct GLFWwindow;
 
 class Cube;
+class Texture;
+class OBJMesh;
 class ShaderProgram;
 
 class Game {
@@ -29,4 +31,7 @@ private:
 
 	Cube *m_cube;
 	ShaderProgram *m_shader;
+
+	Texture* m_tex;
+	OBJMesh* m_mesh;
 };

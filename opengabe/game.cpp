@@ -12,6 +12,8 @@
 
 #include "cube.h"
 #include "shader.h"
+#include "Texture.h"
+#include "OBJMesh.h"
 
 Game::Game()
 {
@@ -89,16 +91,23 @@ int Game::init(char const* title, int width, int height)
 			0.1f,
 			1000.f
 		);
-
+	
 	m_cube = new Cube();
 
+	m_tex = new Texture("pooki.png");
+	m_tex->bind(0);
+
+	m_mesh = new OBJMesh();
+	m_mesh->load("models/Dragon.obj", true, false);
+
 	m_shader = new ShaderProgram();
-	m_shader->loadShader(ShaderStage::VERTEX, "shaders/basic.vert");
-	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/basic.frag");
+	m_shader->loadShader(ShaderStage::VERTEX, "shaders/textured.vert");
+	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/textured.frag");
 	m_shader->link();
 
 	m_shader->use();
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 10.0f, 10.0f, 10.0f });
+	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 15.0f, 15.0f, 15.0f })
+		->bindUniform("friggenTexture", 0u);
 
 	return 0;
 }
@@ -123,22 +132,24 @@ void Game::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	glm::vec3 camPos = glm::vec3(sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
+	glm::vec3 camPos = glm::vec3(15,15,15);// sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
 	//glm::vec3 camPos = glm::vec3(15.0f);
 	m_viewMatrix = glm::lookAt(
 		camPos, glm::vec3(0), glm::vec3(0, 1, 0)
 	);
 
 	glm::mat4 quadTransform = glm::mat4(1);
-	quadTransform = glm::scale(quadTransform, { 7,7,7 });
-	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 1, 0, 0 });
+	quadTransform = glm::translate(quadTransform, { 0, -3.0f,0 });
+	quadTransform = glm::scale(quadTransform, { 1,1,1 });
+	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 0, 1, 0 });
 
 	m_shader->bindUniform("M", quadTransform)
 		->bindUniform("V", m_viewMatrix)
-		->bindUniform("P", m_projectionMatrix)
+		->bindUniform("MVP", m_projectionMatrix * m_viewMatrix * quadTransform)
 		->bindUniform("timer", m_timer);
 
-	m_cube->draw();
+	//m_cube->draw();
+	m_mesh->draw();
 
 	glfwSwapBuffers(m_window);
 }

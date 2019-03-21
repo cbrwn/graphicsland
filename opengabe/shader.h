@@ -60,11 +60,13 @@ public:
 	ShaderProgram* bindUniform(int ID, const float value);
 	ShaderProgram* bindUniform(int ID, const glm::vec3& value);
 	ShaderProgram* bindUniform(int ID, const glm::mat4& value);
+	ShaderProgram* bindUniform(int ID, const unsigned int value);
 
 	// bind using uniform name
 	ShaderProgram* bindUniform(const char* name, const float value);
 	ShaderProgram* bindUniform(const char* name, const glm::vec3& value);
 	ShaderProgram* bindUniform(const char* name, const glm::mat4& value);
+	ShaderProgram* bindUniform(const char* name, const unsigned int value);
 
 private:
 	unsigned int m_handle;

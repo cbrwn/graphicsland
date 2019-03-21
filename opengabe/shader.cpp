@@ -208,6 +208,15 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 }
 
 //----------------------------
+// bind unsigned int by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const unsigned int value)
+{
+	glUniform1uiv(ID, 1, &value);
+	return this;
+}
+
+//----------------------------
 // bind vec3 by ID
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
@@ -234,6 +243,15 @@ ShaderProgram* ShaderProgram::bindUniform(const char* name, const float value)
 }
 
 //----------------------------
+// bind unsigned int by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const unsigned int value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+
 // bind vec3 by name
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec3& value)
