@@ -5,6 +5,7 @@
 struct GLFWwindow;
 
 class Cube;
+class Camera;
 class Texture;
 class OBJMesh;
 class ShaderProgram;
@@ -24,7 +25,6 @@ public:
 private:
 	GLFWwindow *m_window;
 
-	glm::mat4 m_viewMatrix;
 	glm::mat4 m_projectionMatrix;
 
 	float m_timer;
@@ -34,4 +34,8 @@ private:
 
 	Texture* m_tex;
 	OBJMesh* m_mesh;
+
+	Camera* m_cam;
+
+	bool m_escapeDown;
 };
