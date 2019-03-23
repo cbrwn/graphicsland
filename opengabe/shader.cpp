@@ -195,6 +195,7 @@ void ShaderProgram::use()
 
 int ShaderProgram::getUniform(const char* name)
 {
+	use();
 	return glGetUniformLocation(m_handle, name);
 }
 
@@ -203,6 +204,7 @@ int ShaderProgram::getUniform(const char* name)
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 {
+	use();
 	glUniform1fv(ID, 1, &value);
 	return this;
 }
@@ -212,6 +214,7 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const unsigned int value)
 {
+	use();
 	glUniform1uiv(ID, 1, &value);
 	return this;
 }
@@ -221,7 +224,18 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const unsigned int value)
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
 {
+	use();
 	glUniform3f(ID, value.x, value.y, value.z);
+	return this;
+}
+
+//----------------------------
+// bind vec4 by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec4& value)
+{
+	use();
+	glUniform4f(ID, value.x, value.y, value.z, value.w);
 	return this;
 }
 
@@ -230,6 +244,7 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::mat4& value)
 {
+	use();
 	glUniformMatrix4fv(ID, 1, GL_FALSE, &value[0][0]);
 	return this;
 }
@@ -251,10 +266,17 @@ ShaderProgram* ShaderProgram::bindUniform(const char* name, const unsigned int v
 }
 
 //----------------------------
-
 // bind vec3 by name
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec3& value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind vec4 by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec4& value)
 {
 	return bindUniform(getUniform(name), value);
 }

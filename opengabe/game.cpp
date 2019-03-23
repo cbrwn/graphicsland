@@ -11,6 +11,8 @@
 #endif
 
 #include "cube.h"
+#include "camera.h"
+#include "phong.h"
 #include "shader.h"
 #include "Texture.h"
 #include "OBJMesh.h"
@@ -18,14 +20,16 @@
 Game::Game()
 {
 	m_window = nullptr;
-	m_cube = nullptr;
+
+	m_escapeDown = false;
 
 	m_timer = 0.0f;
 }
 
 Game::~Game()
 {
-	delete m_cube;
+	delete m_mesh;
+	delete m_cam;
 
 	if (m_window)
 		glfwDestroyWindow(m_window);
@@ -78,9 +82,7 @@ int Game::init(char const* title, int width, int height)
 	//	ShowWindow(winHandle, SW_SHOW);
 	//#endif
 
-	m_viewMatrix = glm::lookAt(
-		glm::vec3(15), glm::vec3(0), glm::vec3(0, 1, 0)
-	);
+	m_cam = new Camera();
 
 	int w, h;
 	glfwGetWindowSize(m_window, &w, &h);
@@ -91,23 +93,33 @@ int Game::init(char const* title, int width, int height)
 			0.1f,
 			1000.f
 		);
-	
-	m_cube = new Cube();
 
-	m_tex = new Texture("pooki.png");
-	m_tex->bind(0);
+	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* win, int w, int h) {
+		glViewport(0, 0, w, h);
+	});
+
+	m_shader = new PhongShader();
+	m_shader->use();
+	m_shader->setLightCount(3);
+	// red light
+	m_shader->setLight(1, {
+		{20,20,20},
+		{1,1,0,0.5f},
+		{1,1,0,0.5f}
+		});
+	// blue light
+	m_shader->setLight(2, {
+		{20,20,-20},
+		{0,0,1,0.2f},
+		{0,0,1,0.2f}
+		});
+
+	m_mesh = nullptr;
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	draw();
 
 	m_mesh = new OBJMesh();
 	m_mesh->load("models/Dragon.obj", true, false);
-
-	m_shader = new ShaderProgram();
-	m_shader->loadShader(ShaderStage::VERTEX, "shaders/textured.vert");
-	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/textured.frag");
-	m_shader->link();
-
-	m_shader->use();
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 15.0f, 15.0f, 15.0f })
-		->bindUniform("friggenTexture", 0u);
 
 	return 0;
 }
@@ -117,12 +129,19 @@ void Game::loop()
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.3f, 0.6f, 0.8f, 1.0f);
+
+	double lastTime = glfwGetTime();
 
 	while (!glfwWindowShouldClose(m_window))
 	{
 		draw();
-		update(0.016f);
+
+		double currentTime = glfwGetTime();
+		float delta = (float)(currentTime - lastTime);
+		lastTime = currentTime;
+
+		update(delta);
 		glfwPollEvents();
 	}
 }
@@ -132,24 +151,37 @@ void Game::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	glm::vec3 camPos = glm::vec3(15,15,15);// sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
-	//glm::vec3 camPos = glm::vec3(15.0f);
-	m_viewMatrix = glm::lookAt(
-		camPos, glm::vec3(0), glm::vec3(0, 1, 0)
-	);
-
 	glm::mat4 quadTransform = glm::mat4(1);
-	quadTransform = glm::translate(quadTransform, { 0, -3.0f,0 });
-	quadTransform = glm::scale(quadTransform, { 1,1,1 });
-	quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 0, 1, 0 });
+	quadTransform = glm::translate(quadTransform, { 0, 0.0f,0 });
+	quadTransform = glm::scale(quadTransform, glm::vec3(1));
+	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 0, 1, 0 });
 
-	m_shader->bindUniform("M", quadTransform)
-		->bindUniform("V", m_viewMatrix)
-		->bindUniform("MVP", m_projectionMatrix * m_viewMatrix * quadTransform)
+	glm::vec3 lightpos = glm::vec3(m_cam->getTransform()[3]);
+	m_shader->setLightPos(0, lightpos);
+
+	// rotate lights
+	float lightTime = m_timer * 4.0f;
+	const float lightDist = 20.0f;
+	m_shader->setLightPos(1, glm::vec3{
+		cosf(lightTime),
+		1.0f,
+		sinf(lightTime)
+		} * lightDist);
+	m_shader->setLightPos(2, glm::vec3{
+		cosf(lightTime + 3.14f),
+		1.0f,
+		sinf(lightTime+3.14f)
+		} * lightDist);
+
+	glm::mat4 v = m_cam->getView();
+
+	m_shader->getProgram()->bindUniform("M", quadTransform)
+		->bindUniform("V", v)
+		->bindUniform("MVP", m_projectionMatrix * v * quadTransform)
 		->bindUniform("timer", m_timer);
 
-	//m_cube->draw();
-	m_mesh->draw();
+	if (m_mesh)
+		m_mesh->draw();
 
 	glfwSwapBuffers(m_window);
 }
@@ -157,7 +189,29 @@ void Game::draw()
 void Game::update(float delta)
 {
 	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(m_window, true);
+	{
+		if (!m_escapeDown) {
+			if (!m_cam->getLockCursor())
+			{
+				glfwSetWindowShouldClose(m_window, true);
+			}
+			else
+			{
+				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				m_cam->setLockCursor(false);
+			}
+		}
+		m_escapeDown = true;
+	}
+	else {
+		m_escapeDown = false;
+	}
+
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1) && !m_cam->getLockCursor()) {
+		m_cam->setLockCursor(true);
+	}
 
 	m_timer += delta;
+
+	m_cam->update(delta);
 }

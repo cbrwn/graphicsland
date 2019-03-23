@@ -7,12 +7,10 @@ layout(location=2)in vec2 TexCoord;
 uniform mat4 M;
 uniform mat4 V;
 uniform mat4 MVP;
-uniform vec3 LightPos;
 uniform float timer;
 
 out vec3 vertNormal;
 out vec3 vertPos;
-out vec3 lightPos;
 out vec3 viewPos;
 out vec2 uv;
 
@@ -25,9 +23,7 @@ void main() {
 
     gl_Position = pos;
 
-    vertPos = gl_Position.xyz;
-
-    lightPos = LightPos;
+    vertPos = (M*Position).xyz;
 
     viewPos = (inverse(V)[3]).xyz;
 
