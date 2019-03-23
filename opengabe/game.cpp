@@ -12,6 +12,7 @@
 
 #include "cube.h"
 #include "camera.h"
+#include "phong.h"
 #include "shader.h"
 #include "Texture.h"
 #include "OBJMesh.h"
@@ -19,7 +20,6 @@
 Game::Game()
 {
 	m_window = nullptr;
-	m_cube = nullptr;
 
 	m_escapeDown = false;
 
@@ -28,8 +28,6 @@ Game::Game()
 
 Game::~Game()
 {
-	delete m_cube;
-	delete m_tex;
 	delete m_mesh;
 	delete m_cam;
 
@@ -100,27 +98,28 @@ int Game::init(char const* title, int width, int height)
 		glViewport(0, 0, w, h);
 	});
 
-	m_cube = new Cube();
-
-	m_tex = new Texture("pooki.png");
-	m_tex->bind(0);
-
-
-	m_shader = new ShaderProgram();
-	m_shader->loadShader(ShaderStage::VERTEX, "shaders/textured.vert");
-	m_shader->loadShader(ShaderStage::FRAGMENT, "shaders/textured.frag");
-	m_shader->link();
-
+	m_shader = new PhongShader();
 	m_shader->use();
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), { 15.0f, 15.0f, 15.0f })
-		->bindUniform("friggenTexture", 0u);
+	m_shader->setLightCount(3);
+	// red light
+	m_shader->setLight(1, {
+		{20,20,20},
+		{1,1,0,0.5f},
+		{1,1,0,0.5f}
+		});
+	// blue light
+	m_shader->setLight(2, {
+		{20,20,-20},
+		{0,0,1,0.2f},
+		{0,0,1,0.2f}
+		});
 
 	m_mesh = nullptr;
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	draw();
 
 	m_mesh = new OBJMesh();
-	m_mesh->load("models/model.obj", true, false);
+	m_mesh->load("models/Dragon.obj", true, false);
 
 	return 0;
 }
@@ -152,32 +151,37 @@ void Game::draw()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	glm::vec3 camPos = glm::vec3(15, 10, 15);// sinf(m_timer)*15.0f, 15.0f, cosf(m_timer)*15.0f);
-	//glm::vec3 camPos = glm::vec3(15.0f);
-
 	glm::mat4 quadTransform = glm::mat4(1);
 	quadTransform = glm::translate(quadTransform, { 0, 0.0f,0 });
-	quadTransform = glm::scale(quadTransform, { 20,20,20 });
+	quadTransform = glm::scale(quadTransform, glm::vec3(1));
 	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 0, 1, 0 });
 
 	glm::vec3 lightpos = glm::vec3(m_cam->getTransform()[3]);
-	m_shader->bindUniform(m_shader->getUniform("LightPos"), lightpos);
+	m_shader->setLightPos(0, lightpos);
+
+	// rotate lights
+	float lightTime = m_timer * 4.0f;
+	const float lightDist = 20.0f;
+	m_shader->setLightPos(1, glm::vec3{
+		cosf(lightTime),
+		1.0f,
+		sinf(lightTime)
+		} * lightDist);
+	m_shader->setLightPos(2, glm::vec3{
+		cosf(lightTime + 3.14f),
+		1.0f,
+		sinf(lightTime+3.14f)
+		} * lightDist);
 
 	glm::mat4 v = m_cam->getView();
 
-	m_shader->bindUniform("M", quadTransform)
+	m_shader->getProgram()->bindUniform("M", quadTransform)
 		->bindUniform("V", v)
 		->bindUniform("MVP", m_projectionMatrix * v * quadTransform)
 		->bindUniform("timer", m_timer);
 
 	if (m_mesh)
 		m_mesh->draw();
-
-	quadTransform = glm::mat4(1);
-	quadTransform = glm::translate(quadTransform, lightpos);
-	m_shader->bindUniform("M", quadTransform)
-		->bindUniform("MVP", m_projectionMatrix * v* quadTransform);
-	m_cube->draw();
 
 	glfwSwapBuffers(m_window);
 }

@@ -8,7 +8,7 @@ class Cube;
 class Camera;
 class Texture;
 class OBJMesh;
-class ShaderProgram;
+class PhongShader;
 
 class Game {
 public:
@@ -29,13 +29,9 @@ private:
 
 	float m_timer;
 
-	Cube *m_cube;
-	ShaderProgram *m_shader;
-
-	Texture* m_tex;
-	OBJMesh* m_mesh;
-
 	Camera* m_cam;
+	OBJMesh* m_mesh;
+	PhongShader *m_shader;
 
 	bool m_escapeDown;
 };
