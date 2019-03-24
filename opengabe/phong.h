@@ -32,6 +32,10 @@ public:
 	PhongShader* setLightDiffuse(unsigned int index, glm::vec4 const& p);
 	PhongShader* setLightSpecular(unsigned int index, glm::vec4 const& p);
 
+	PhongShader* setMVP(glm::mat4 const& mvp);
+	PhongShader* setViewMatrix(glm::mat4 const& v);
+	PhongShader* setModelMatrix(glm::mat4 const& m);
+
 	ShaderProgram* getProgram() { return m_program; }
 private:
 	ShaderProgram* m_program;

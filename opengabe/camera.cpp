@@ -107,3 +107,14 @@ void Camera::setLockCursor(bool l)
 	}
 
 }
+
+void Camera::updateProjectionMatrix(int windowWidth, int windowHeight,
+	float verticalFov, float near, float far)
+{
+	m_proj = glm::perspective(
+			glm::pi<float>() * verticalFov,
+			windowWidth / (float)windowHeight,
+			near,
+			far
+		);
+}

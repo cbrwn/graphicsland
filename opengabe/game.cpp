@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include <stdio.h>
+#include <functional>
 #include "gl_core_4_4.h"
 #include <GLFW/glfw3.h>
 
@@ -10,15 +11,15 @@
 #include <Windows.h>
 #endif
 
-#include "cube.h"
-#include "camera.h"
 #include "phong.h"
-#include "shader.h"
-#include "Texture.h"
+#include "scene.h"
+#include "camera.h"
 #include "OBJMesh.h"
+#include "drawable.h"
 
 Game::Game()
 {
+	m_scene = nullptr;
 	m_window = nullptr;
 
 	m_escapeDown = false;
@@ -28,8 +29,14 @@ Game::Game()
 
 Game::~Game()
 {
-	delete m_mesh;
-	delete m_cam;
+	// will delete all objects in the scene
+	delete m_scene;
+
+	delete m_bunny;
+	delete m_dragon;
+	delete m_buddha;
+
+	delete m_shader;
 
 	if (m_window)
 		glfwDestroyWindow(m_window);
@@ -82,44 +89,48 @@ int Game::init(char const* title, int width, int height)
 	//	ShowWindow(winHandle, SW_SHOW);
 	//#endif
 
-	m_cam = new Camera();
+	// create shader
+	m_shader = new PhongShader();
+	m_shader->setLightCount(1);
+	m_shader->setLight(0, {
+		{20,20,20}, // pos
+		{1, 1, 1, 1}, // diffuse
+		{1, 1, 1, 1} // specular
+		});
+
+	// load models
+	m_bunny = new OBJMesh();
+	m_dragon = new OBJMesh();
+	m_buddha = new OBJMesh();
+	m_bunny->load("models/Bunny.obj");
+	m_dragon->load("models/Dragon.obj");
+	m_buddha->load("models/Buddha.obj");
+
+	m_scene = new Scene();
+
+	m_drawables.push_back(new Drawable({ -2,0,0 }));
+	m_drawables.back()->setMesh(m_bunny)->setShader(m_shader);
+	m_drawables.push_back(new Drawable({ 10,0,0 }, { 0,0,0 }, m_drawables[0]));
+	m_drawables.back()->setMesh(m_dragon)->setShader(m_shader);
+	m_drawables.push_back(new Drawable({ -10,0,0 }, { 0,0,0 }, m_drawables[1]));
+	m_drawables.back()->setMesh(m_buddha)->setShader(m_shader);
+
+	m_drawables[1]->rotate({ 0,-1.5f,0 });
+
+	m_scene->addObject(m_drawables[0]);
 
 	int w, h;
 	glfwGetWindowSize(m_window, &w, &h);
-	m_projectionMatrix =
-		glm::perspective(
-			glm::pi<float>() * 0.25f,
-			w / (float)h,
-			0.1f,
-			1000.f
-		);
+	m_scene->getCamera()->updateProjectionMatrix(w, h);
 
-	glfwSetWindowSizeCallback(m_window, [](GLFWwindow* win, int w, int h) {
+	glfwSetWindowUserPointer(m_window, this);
+	glfwSetWindowSizeCallback(m_window,
+		[](GLFWwindow* win, int w, int h)
+	{
 		glViewport(0, 0, w, h);
+		((Game*)glfwGetWindowUserPointer(win))->getScene()
+			->getCamera()->updateProjectionMatrix(w, h);
 	});
-
-	m_shader = new PhongShader();
-	m_shader->use();
-	m_shader->setLightCount(3);
-	// red light
-	m_shader->setLight(1, {
-		{20,20,20},
-		{1,1,0,0.5f},
-		{1,1,0,0.5f}
-		});
-	// blue light
-	m_shader->setLight(2, {
-		{20,20,-20},
-		{0,0,1,0.2f},
-		{0,0,1,0.2f}
-		});
-
-	m_mesh = nullptr;
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	draw();
-
-	m_mesh = new OBJMesh();
-	m_mesh->load("models/Dragon.obj", true, false);
 
 	return 0;
 }
@@ -135,13 +146,12 @@ void Game::loop()
 
 	while (!glfwWindowShouldClose(m_window))
 	{
-		draw();
-
 		double currentTime = glfwGetTime();
 		float delta = (float)(currentTime - lastTime);
 		lastTime = currentTime;
 
 		update(delta);
+		draw();
 		glfwPollEvents();
 	}
 }
@@ -150,68 +160,47 @@ void Game::draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-	glm::mat4 quadTransform = glm::mat4(1);
-	quadTransform = glm::translate(quadTransform, { 0, 0.0f,0 });
-	quadTransform = glm::scale(quadTransform, glm::vec3(1));
-	//quadTransform = glm::rotate(quadTransform, m_timer*1.2f, { 0, 1, 0 });
-
-	glm::vec3 lightpos = glm::vec3(m_cam->getTransform()[3]);
-	m_shader->setLightPos(0, lightpos);
-
-	// rotate lights
-	float lightTime = m_timer * 4.0f;
-	const float lightDist = 20.0f;
-	m_shader->setLightPos(1, glm::vec3{
-		cosf(lightTime),
-		1.0f,
-		sinf(lightTime)
-		} * lightDist);
-	m_shader->setLightPos(2, glm::vec3{
-		cosf(lightTime + 3.14f),
-		1.0f,
-		sinf(lightTime+3.14f)
-		} * lightDist);
-
-	glm::mat4 v = m_cam->getView();
-
-	m_shader->getProgram()->bindUniform("M", quadTransform)
-		->bindUniform("V", v)
-		->bindUniform("MVP", m_projectionMatrix * v * quadTransform)
-		->bindUniform("timer", m_timer);
-
-	if (m_mesh)
-		m_mesh->draw();
+	for (Drawable* d : m_drawables)
+		d->draw();
 
 	glfwSwapBuffers(m_window);
 }
 
 void Game::update(float delta)
 {
+	Camera* cam = m_scene->getCamera();
 	if (glfwGetKey(m_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
-		if (!m_escapeDown) {
-			if (!m_cam->getLockCursor())
+		if (!m_escapeDown)
+		{
+			if (!cam->getLockCursor())
 			{
 				glfwSetWindowShouldClose(m_window, true);
 			}
 			else
 			{
 				glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-				m_cam->setLockCursor(false);
+				cam->setLockCursor(false);
 			}
 		}
 		m_escapeDown = true;
 	}
-	else {
+	else
+	{
 		m_escapeDown = false;
 	}
 
-	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1) && !m_cam->getLockCursor()) {
-		m_cam->setLockCursor(true);
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1)
+		&& !cam->getLockCursor())
+	{
+		cam->setLockCursor(true);
 	}
 
 	m_timer += delta;
 
-	m_cam->update(delta);
+	m_drawables[0]->rotate({ 0,1 * delta,0});
+	m_drawables[1]->rotate({ 0,0,1*delta });
+	m_drawables[2]->rotate({ 1 * delta,0,0 });
+
+	cam->update(delta);
 }

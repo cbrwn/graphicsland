@@ -7,13 +7,14 @@
 #include <vector>
 #include "Texture.h"
 
-
 // a simple triangle mesh wrapper
-class OBJMesh {
+class OBJMesh
+{
 public:
 
 	// a vertex structure for obj files
-	struct Vertex {
+	struct Vertex
+	{
 		glm::vec4 position; // added to attrib location 0
 		glm::vec4 normal;	// added to attrib location 1
 		glm::vec2 texcoord;	// added to attrib location 2
@@ -23,7 +24,8 @@ public:
 	};
 
 	// a basic material
-	class Material {
+	class Material
+	{
 	public:
 
 		Material() : ambient(1), diffuse(1), specular(0), emissive(0), specularPower(1), opacity(1) {}
@@ -59,14 +61,15 @@ public:
 	const std::string& getFilename() const { return m_filename; }
 
 	// material access
-	size_t getMaterialCount() const { return m_materials.size();  }
-	Material& getMaterial(size_t index) { return m_materials[index];  }
+	size_t getMaterialCount() const { return m_materials.size(); }
+	Material& getMaterial(size_t index) { return m_materials[index]; }
 
 private:
 
 	void calculateTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
 
-	struct MeshChunk {
+	struct MeshChunk
+	{
 		unsigned int	vao, vbo, ibo;
 		unsigned int	indexCount;
 		int				materialID;

@@ -77,6 +77,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\glfw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -90,6 +91,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)dependencies\glfw;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -133,27 +135,31 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="cube.cpp" />
+    <ClCompile Include="drawable.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="Gizmos.cpp" />
     <ClCompile Include="gl_core_4_4.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="OBJMesh.cpp" />
     <ClCompile Include="phong.cpp" />
     <ClCompile Include="quad.cpp" />
+    <ClCompile Include="scene.cpp" />
+    <ClCompile Include="sceneobject.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="cube.h" />
+    <ClInclude Include="drawable.h" />
     <ClInclude Include="game.h" />
-    <ClInclude Include="Gizmos.h" />
     <ClInclude Include="gl_core_4_4.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="OBJMesh.h" />
     <ClInclude Include="phong.h" />
     <ClInclude Include="quad.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="sceneobject.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tiny_obj_loader.h" />

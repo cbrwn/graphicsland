@@ -48,6 +48,24 @@ PhongShader* PhongShader::setLightSpecular(unsigned int index,
 	return this;
 }
 
+PhongShader* PhongShader::setMVP(glm::mat4 const& mvp)
+{
+	m_program->bindUniform("MVP", mvp);
+	return this;
+}
+
+PhongShader* PhongShader::setViewMatrix(glm::mat4 const& v)
+{
+	m_program->bindUniform("V", v);
+	return this;
+}
+
+PhongShader* PhongShader::setModelMatrix(glm::mat4 const& m)
+{
+	m_program->bindUniform("M", m);
+	return this;
+}
+
 std::string PhongShader::getUniformName(std::string attrib, unsigned int index)
 {
 	return "lights[" + std::to_string(index) + "]." + attrib;

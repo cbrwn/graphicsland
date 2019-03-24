@@ -1,13 +1,13 @@
 #pragma once
 
+#include <vector>
 #include <glm/ext.hpp>
 
 struct GLFWwindow;
 
-class Cube;
-class Camera;
-class Texture;
+class Scene;
 class OBJMesh;
+class Drawable;
 class PhongShader;
 
 class Game {
@@ -22,16 +22,22 @@ public:
 	void draw();
 	void update(float delta);
 
+	Scene* getScene() const { return m_scene; }
+
 private:
 	GLFWwindow *m_window;
 
-	glm::mat4 m_projectionMatrix;
-
 	float m_timer;
 
-	Camera* m_cam;
-	OBJMesh* m_mesh;
-	PhongShader *m_shader;
+	Scene* m_scene;
 
 	bool m_escapeDown;
+
+	OBJMesh *m_bunny;
+	OBJMesh *m_dragon;
+	OBJMesh *m_buddha;
+
+	PhongShader* m_shader;
+
+	std::vector<Drawable*> m_drawables;
 };
