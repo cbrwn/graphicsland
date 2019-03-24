@@ -10,7 +10,7 @@ class ShaderProgram;
 class PhongShader
 {
 public:
-	PhongShader();
+	PhongShader(bool textured = false);
 	~PhongShader();
 
 	struct Light
@@ -26,6 +26,8 @@ public:
 	PhongShader* setLightCount(unsigned int c);
 	// set every part of a light
 	PhongShader* setLight(unsigned int index, PhongShader::Light const& info);
+
+	PhongShader* setAmbientLight(float f);
 
 	// set individual parts of lights
 	PhongShader* setLightPos(unsigned int index, glm::vec3 const& p);

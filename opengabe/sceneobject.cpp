@@ -62,6 +62,15 @@ SceneObject* SceneObject::rotate(glm::vec3 const & rot)
 	return this;
 }
 
+SceneObject* SceneObject::scale(glm::vec3 const& scale)
+{
+	mat4 m(1);
+	m = glm::scale(m, scale);
+
+	m_localTransform = m_localTransform * m;
+	return this;
+}
+
 mat4 SceneObject::getGlobalTransform() const
 {
 	if (m_parent)

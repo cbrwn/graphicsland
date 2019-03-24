@@ -18,6 +18,7 @@ public:
 	void setScene(Scene* s);
 
 	SceneObject* rotate(glm::vec3 const& rot);
+	SceneObject* scale(glm::vec3 const& scale);
 
 	glm::mat4 getLocalTransform() const { return m_localTransform; }
 	glm::mat4 getGlobalTransform() const;
@@ -27,8 +28,6 @@ public:
 
 	void addChild(SceneObject* c, bool parent = true);
 	void removeChild(SceneObject* c);
-
-	char name[128];
 
 protected:
 	Scene* m_scene;

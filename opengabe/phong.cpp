@@ -2,11 +2,19 @@
 
 #include "shader.h"
 
-PhongShader::PhongShader()
+PhongShader::PhongShader(bool textured)
 {
 	m_program = new ShaderProgram();
-	m_program->loadShader(ShaderStage::VERTEX, "shaders/textured.vert");
-	m_program->loadShader(ShaderStage::FRAGMENT, "shaders/textured.frag");
+	if (textured)
+	{
+		m_program->loadShader(ShaderStage::VERTEX, "shaders/phong_textured.vert");
+		m_program->loadShader(ShaderStage::FRAGMENT, "shaders/phong_textured.frag");
+	}
+	else
+	{
+		m_program->loadShader(ShaderStage::VERTEX, "shaders/phong.vert");
+		m_program->loadShader(ShaderStage::FRAGMENT, "shaders/phong.frag");
+	}
 	m_program->link();
 
 	setLightCount(1);
@@ -19,12 +27,18 @@ PhongShader::~PhongShader()
 	delete m_program;
 }
 
-PhongShader* PhongShader::setLight(unsigned int index, 
+PhongShader* PhongShader::setLight(unsigned int index,
 	PhongShader::Light const& info)
 {
 	setLightPos(index, info.position);
 	setLightDiffuse(index, info.diffuse);
 	setLightSpecular(index, info.specular);
+	return this;
+}
+
+PhongShader* PhongShader::setAmbientLight(float f)
+{
+	m_program->bindUniform("ambientLight", f);
 	return this;
 }
 
@@ -34,14 +48,14 @@ PhongShader* PhongShader::setLightPos(unsigned int index, glm::vec3 const& p)
 	return this;
 }
 
-PhongShader* PhongShader::setLightDiffuse(unsigned int index, 
+PhongShader* PhongShader::setLightDiffuse(unsigned int index,
 	glm::vec4 const& p)
 {
 	m_program->bindUniform(getUniformName("diffuse", index).c_str(), p);
 	return this;
 }
 
-PhongShader* PhongShader::setLightSpecular(unsigned int index, 
+PhongShader* PhongShader::setLightSpecular(unsigned int index,
 	glm::vec4 const& p)
 {
 	m_program->bindUniform(getUniformName("specular", index).c_str(), p);

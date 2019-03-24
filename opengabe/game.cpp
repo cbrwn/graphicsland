@@ -50,8 +50,6 @@ int Game::init(char const* title, int width, int height)
 		return 1;
 
 	//glfwWindowHint(GLFW_DECORATED, false);
-	//glfwWindowHint(GLFW_FLOATING, true);
-	//glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
 	m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	if (!m_window)
 	{
@@ -77,32 +75,20 @@ int Game::init(char const* title, int width, int height)
 		glfwSetWindowPos(m_window, videoMode->width / 2 - width / 2, videoMode->height / 2 - width / 2);
 	}
 
-	//#ifdef _WIN32
-	//	// hide window from taskbar
-	//	HWND winHandle = glfwGetWin32Window(m_window);
-	//
-	//	long style = GetWindowLong(winHandle, GWL_STYLE);
-	//	style |= WS_EX_TOOLWINDOW;
-	//
-	//	ShowWindow(winHandle, SW_HIDE);
-	//	SetWindowLong(winHandle, GWL_STYLE, style);
-	//	ShowWindow(winHandle, SW_SHOW);
-	//#endif
-
 	// create shader
 	m_shader = new PhongShader();
-	m_shader->setLightCount(1);
-	m_shader->setLight(0, {
-		{20,20,20}, // pos
-		{1, 1, 1, 1}, // diffuse
-		{1, 1, 1, 1} // specular
-		});
+	m_shader->setLightCount(1)
+		->setLight(0, {
+			{20,20,20}, // pos
+			{1, 1, 1, 1}, // diffuse
+			{1, 1, 1, 1} // specular
+			});
 
 	// load models
 	m_bunny = new OBJMesh();
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
-	m_bunny->load("models/Bunny.obj");
+	m_bunny->load("models/Trumpet.obj", true, true);
 	m_dragon->load("models/Dragon.obj");
 	m_buddha->load("models/Buddha.obj");
 
@@ -110,12 +96,13 @@ int Game::init(char const* title, int width, int height)
 
 	m_drawables.push_back(new Drawable({ -2,0,0 }));
 	m_drawables.back()->setMesh(m_bunny)->setShader(m_shader);
-	m_drawables.push_back(new Drawable({ 10,0,0 }, { 0,0,0 }, m_drawables[0]));
-	m_drawables.back()->setMesh(m_dragon)->setShader(m_shader);
-	m_drawables.push_back(new Drawable({ -10,0,0 }, { 0,0,0 }, m_drawables[1]));
-	m_drawables.back()->setMesh(m_buddha)->setShader(m_shader);
+	//m_drawables.push_back(new Drawable({ 10,0,0 }, { 0,0,0 }, m_drawables[0]));
+	//m_drawables.back()->setMesh(m_dragon)->setShader(m_shader);
+	//m_drawables.push_back(new Drawable({ -10,0,0 }, { 0,0,0 }, m_drawables[1]));
+	//m_drawables.back()->setMesh(m_buddha)->setShader(m_shader);
 
-	m_drawables[1]->rotate({ 0,-1.5f,0 });
+	//m_drawables[0]->rotate({ -3.14159f/2000000.0f,0,0 });
+	m_drawables[0]->scale(glm::vec3(1.0f));
 
 	m_scene->addObject(m_drawables[0]);
 
@@ -139,6 +126,8 @@ void Game::loop()
 {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glClearColor(0.3f, 0.6f, 0.8f, 1.0f);
 
@@ -198,9 +187,11 @@ void Game::update(float delta)
 
 	m_timer += delta;
 
-	m_drawables[0]->rotate({ 0,1 * delta,0});
-	m_drawables[1]->rotate({ 0,0,1*delta });
-	m_drawables[2]->rotate({ 1 * delta,0,0 });
+	//m_drawables[0]->rotate({ 0,1 * delta,0 });
+	//m_drawables[1]->rotate({ 0,0,1*delta });
+	//m_drawables[2]->rotate({ 1 * delta,0,0 });
 
 	cam->update(delta);
+
+	m_shader->setLightPos(0, cam->getTransform()[3]);
 }
