@@ -67,5 +67,5 @@ void main() {
 		col += (diffusePart);// + specularPart);
 	}
 
-	fragColor = vec4(Kd, 1.0);//col + vec4(Ke, opacity);
+	fragColor = col + vec4(Ke, opacity);
 }
