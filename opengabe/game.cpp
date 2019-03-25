@@ -13,6 +13,7 @@
 
 #include "phong.h"
 #include "scene.h"
+#include "shader.h"
 #include "camera.h"
 #include "OBJMesh.h"
 #include "drawable.h"
@@ -23,6 +24,7 @@ Game::Game()
 	m_window = nullptr;
 
 	m_escapeDown = false;
+	m_fbo = 0;
 
 	m_timer = 0.0f;
 }
@@ -37,6 +39,12 @@ Game::~Game()
 	delete m_buddha;
 
 	delete m_shader;
+
+	glDeleteFramebuffers(1, &m_fbo);
+	glDeleteVertexArrays(1, &m_quadVao);
+	glDeleteBuffers(1, &m_quadVbo);
+	glDeleteTextures(1, &m_tex);
+	glDeleteRenderbuffers(1, &m_rbo);
 
 	if (m_window)
 		glfwDestroyWindow(m_window);
@@ -66,6 +74,9 @@ int Game::init(char const* title, int width, int height)
 		return 3;
 	}
 
+	// create framebuffer used for post effects
+	setupFramebuffer();
+
 	int monitorCount;
 	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
 	if (monitorCount > 1)
@@ -76,33 +87,33 @@ int Game::init(char const* title, int width, int height)
 	}
 
 	// create shader
-	m_shader = new PhongShader();
+	m_shader = new PhongShader(true);
 	m_shader->setLightCount(1)
 		->setLight(0, {
 			{20,20,20}, // pos
 			{1, 1, 1, 1}, // diffuse
 			{1, 1, 1, 1} // specular
 			});
+	m_shader->use();
 
 	// load models
 	m_bunny = new OBJMesh();
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
-	m_bunny->load("models/Trumpet.obj", true, true);
-	m_dragon->load("models/Dragon.obj");
-	m_buddha->load("models/Buddha.obj");
+	m_bunny->load("models/spear/soulspear.obj", true, true);
+	//m_dragon->load("models/Dragon.obj");
+	//m_buddha->load("models/Buddha.obj");
 
 	m_scene = new Scene();
 
-	m_drawables.push_back(new Drawable({ -2,0,0 }));
+	m_drawables.push_back(new Drawable({ 0,0,0 }));
 	m_drawables.back()->setMesh(m_bunny)->setShader(m_shader);
 	//m_drawables.push_back(new Drawable({ 10,0,0 }, { 0,0,0 }, m_drawables[0]));
 	//m_drawables.back()->setMesh(m_dragon)->setShader(m_shader);
 	//m_drawables.push_back(new Drawable({ -10,0,0 }, { 0,0,0 }, m_drawables[1]));
 	//m_drawables.back()->setMesh(m_buddha)->setShader(m_shader);
 
-	//m_drawables[0]->rotate({ -3.14159f/2000000.0f,0,0 });
-	m_drawables[0]->scale(glm::vec3(1.0f));
+	m_drawables[0]->scale(glm::vec3(5.0f));
 
 	m_scene->addObject(m_drawables[0]);
 
@@ -117,6 +128,7 @@ int Game::init(char const* title, int width, int height)
 		glViewport(0, 0, w, h);
 		((Game*)glfwGetWindowUserPointer(win))->getScene()
 			->getCamera()->updateProjectionMatrix(w, h);
+		((Game*)glfwGetWindowUserPointer(win))->setupFramebuffer();
 	});
 
 	return 0;
@@ -124,12 +136,10 @@ int Game::init(char const* title, int width, int height)
 
 void Game::loop()
 {
-	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glClearColor(0.3f, 0.6f, 0.8f, 1.0f);
 
 	double lastTime = glfwGetTime();
 
@@ -140,19 +150,49 @@ void Game::loop()
 		lastTime = currentTime;
 
 		update(delta);
+
 		draw();
+		drawPost();
+
+		glfwSwapBuffers(m_window);
 		glfwPollEvents();
 	}
 }
 
 void Game::draw()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+	glEnable(GL_DEPTH_TEST);
+
+	//int _w, _h;
+	//glfwGetWindowSize(m_window, &_w, &_h);
+	//glViewport(0, 0, _w/8, _h/8);
+
+	glClearColor(0.3f, 0.6f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (Drawable* d : m_drawables)
 		d->draw();
+}
 
-	glfwSwapBuffers(m_window);
+void Game::drawPost()
+{
+	// second pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+
+	//int _w, _h;
+	//glfwGetWindowSize(m_window, &_w, &_h);
+	//glViewport(0, 0, _w, _h);
+
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	m_postShader->use();
+	glBindVertexArray(m_quadVao);
+	glDisable(GL_DEPTH_TEST);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void Game::update(float delta)
@@ -194,4 +234,81 @@ void Game::update(float delta)
 	cam->update(delta);
 
 	m_shader->setLightPos(0, cam->getTransform()[3]);
+}
+
+void Game::setupFramebuffer()
+{
+	bool resized = (m_fbo > 0);
+
+	if (resized)
+	{
+		glDeleteFramebuffers(1, &m_fbo);
+		glDeleteTextures(1, &m_tex);
+		glDeleteRenderbuffers(1, &m_rbo);
+	}
+
+	// create buffer
+	glGenFramebuffers(1, &m_fbo);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+	// create texture for frame buffer
+	glGenTextures(1, &m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+
+	int w, h;
+	glfwGetWindowSize(m_window, &w, &h);
+	//w /= 8;
+	//h /= 8;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex, 0);
+
+	// make render buffer for depth/stencil since we won't use them in post
+	// processing
+	glGenRenderbuffers(1, &m_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (resized)
+		return;
+
+	// make quad for rendering framebuffer to
+	float vertices[] = {
+		// pos        // uv
+		-1.0f,  1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		 1.0f, -1.0f, 1.0f, 0.0f,
+
+		-1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, 1.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &m_quadVao);
+	glGenBuffers(1, &m_quadVbo);
+	glBindVertexArray(m_quadVao);
+	glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	m_postShader = new ShaderProgram();
+	m_postShader->loadShader(ShaderStage::VERTEX, "shaders/post/post.vert");
+	m_postShader->loadShader(ShaderStage::FRAGMENT, "shaders/post/post.frag");
+	m_postShader->link();
+
+	m_postShader->use();
+	printf("screenTexture: %u\n", m_tex);
+	m_postShader->bindUniform("screenTexture", 0U);
 }

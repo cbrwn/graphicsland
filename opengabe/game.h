@@ -9,6 +9,7 @@ class Scene;
 class OBJMesh;
 class Drawable;
 class PhongShader;
+class ShaderProgram;
 
 class Game {
 public:
@@ -23,6 +24,8 @@ public:
 	void update(float delta);
 
 	Scene* getScene() const { return m_scene; }
+
+	void setupFramebuffer();
 
 private:
 	GLFWwindow *m_window;
@@ -40,4 +43,16 @@ private:
 	PhongShader* m_shader;
 
 	std::vector<Drawable*> m_drawables;
+
+	///////////////////////////
+	// POST PROCESSING STUFF //
+	///////////////////////////
+	// frame buffer stuff
+	unsigned int m_fbo, m_tex, m_rbo;
+	// quad for rendering framebuffer
+	unsigned int m_quadVao, m_quadVbo;
+	// shader
+	ShaderProgram* m_postShader;
+
+	void drawPost();
 };
