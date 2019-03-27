@@ -88,8 +88,13 @@ int Game::init(char const* title, int width, int height)
 
 	// create shader
 	m_shader = new PhongShader(true);
-	m_shader->setLightCount(1)
+	m_shader->setLightCount(2)
 		->setLight(0, {
+			{20,20,20}, // pos
+			glm::vec4{1, 1, 1, 1}/2.0f, // diffuse
+			{1, 1, 1, 1} // specular
+			})
+		->setLight(1, {
 			{20,20,20}, // pos
 			{1, 1, 1, 1}, // diffuse
 			{1, 1, 1, 1} // specular
@@ -234,6 +239,12 @@ void Game::update(float delta)
 	cam->update(delta);
 
 	m_shader->setLightPos(0, cam->getTransform()[3]);
+
+	m_shader->setLightPos(1, {
+		sinf(m_timer*2.0f) * 10.0f,
+		4.0f,
+		cosf(m_timer*2.0f)*10.0f
+		});
 }
 
 void Game::setupFramebuffer()
