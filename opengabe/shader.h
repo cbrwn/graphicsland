@@ -40,7 +40,7 @@ class ShaderProgram
 {
 public:
 	ShaderProgram();
-	~ShaderProgram();
+	virtual ~ShaderProgram();
 
 	bool loadShader(ShaderStage stage, const char* filename);
 	bool createShader(ShaderStage stage, const char* source);

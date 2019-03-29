@@ -3,15 +3,14 @@
 #include <string>
 #include <glm/ext.hpp>
 
-class ShaderProgram;
+#include "shader.h"
 
 #define PHONG_MAX_LIGHTS 8
 
-class PhongShader
+class PhongShader : public ShaderProgram
 {
 public:
 	PhongShader(bool textured = false);
-	~PhongShader();
 
 	struct Light
 	{
@@ -19,8 +18,6 @@ public:
 		glm::vec4 diffuse;
 		glm::vec4 specular;
 	};
-
-	PhongShader* use();
 
 	// set the number of lights to use
 	PhongShader* setLightCount(unsigned int c);
@@ -37,11 +34,7 @@ public:
 	PhongShader* setMVP(glm::mat4 const& mvp);
 	PhongShader* setViewMatrix(glm::mat4 const& v);
 	PhongShader* setModelMatrix(glm::mat4 const& m);
-
-	ShaderProgram* getProgram() { return m_program; }
 private:
-	ShaderProgram* m_program;
-
 	std::string getUniformName(std::string attrib, unsigned int index);
 
 };
