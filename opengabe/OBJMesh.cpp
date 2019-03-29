@@ -164,6 +164,9 @@ void OBJMesh::draw(bool usePatches /* = false */) {
 	int opacityUniform = glGetUniformLocation(program, "opacity");
 	int specPowUniform = glGetUniformLocation(program, "specularPower");
 
+	// also my texture flag thing :D
+	int texFlagUniform = glGetUniformLocation(program, "textureFlags");
+
 	int alphaTexUniform = glGetUniformLocation(program, "alphaTexture");
 	int ambientTexUniform = glGetUniformLocation(program, "ambientTexture");
 	int diffuseTexUniform = glGetUniformLocation(program, "diffuseTexture");
@@ -250,6 +253,16 @@ void OBJMesh::draw(bool usePatches /* = false */) {
 				glBindTexture(GL_TEXTURE_2D, m_materials[currentMaterial].displacementTexture.getHandle());
 			else if (dispTexUniform >= 0)
 				glBindTexture(GL_TEXTURE_2D, 0);
+
+			unsigned int textureFlag = 0;
+			if (m_materials[currentMaterial].diffuseTexture.getHandle() > 0)
+				textureFlag |= 0b0001;
+			if (m_materials[currentMaterial].normalTexture.getHandle() > 0)
+				textureFlag |= 0b0010;
+			if (m_materials[currentMaterial].specularTexture.getHandle() > 0)
+				textureFlag |= 0b0100;
+
+			glUniform1ui(texFlagUniform, textureFlag);
 		}
 
 		// bind and draw geometry

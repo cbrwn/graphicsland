@@ -87,7 +87,7 @@ int Game::init(char const* title, int width, int height)
 	}
 
 	// create shader
-	m_shader = new PhongShader(true);
+	m_shader = new PhongShader(false);
 	m_shader->setLightCount(2)
 		->setLight(0, {
 			{20,20,20}, // pos
@@ -105,7 +105,8 @@ int Game::init(char const* title, int width, int height)
 	m_bunny = new OBJMesh();
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
-	m_bunny->load("models/spear/soulspear.obj", true, true);
+	//m_bunny->load("models/spear/soulspear.obj", true, true);
+	m_bunny->load("models/spear/soulspear.obj", !!!!!!!!!!false , true);
 	//m_dragon->load("models/Dragon.obj");
 	//m_buddha->load("models/Buddha.obj");
 
@@ -144,7 +145,6 @@ void Game::loop()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
 	double lastTime = glfwGetTime();
 
@@ -230,6 +230,7 @@ void Game::update(float delta)
 		cam->setLockCursor(true);
 	}
 
+
 	m_timer += delta;
 
 	//m_drawables[0]->rotate({ 0,1 * delta,0 });
@@ -239,6 +240,8 @@ void Game::update(float delta)
 	cam->update(delta);
 
 	m_shader->setLightPos(0, cam->getTransform()[3]);
+
+	m_postShader->bindUniform("swirlAmount", sinf(m_timer*20.0f)*0.2f);
 
 	m_shader->setLightPos(1, {
 		sinf(m_timer*2.0f) * 10.0f,
@@ -320,6 +323,5 @@ void Game::setupFramebuffer()
 	m_postShader->link();
 
 	m_postShader->use();
-	printf("screenTexture: %u\n", m_tex);
 	m_postShader->bindUniform("screenTexture", 0U);
 }

@@ -147,6 +147,7 @@
     <ClCompile Include="sceneobject.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="toon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="toon.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

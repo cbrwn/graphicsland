@@ -48,7 +48,7 @@ public:
 		Texture displacementTexture;		// bound slot 6
 	};
 
-	OBJMesh() {}
+	OBJMesh() : m_defaultTex(0) {}
 	~OBJMesh();
 
 	// will fail if a mesh has already been loaded in to this instance
@@ -78,4 +78,6 @@ private:
 	std::string				m_filename;
 	std::vector<MeshChunk>	m_meshChunks;
 	std::vector<Material>	m_materials;
+
+	unsigned int m_defaultTex;
 };

@@ -20,7 +20,6 @@ void main() {
     vec4 pos = MVP * Position;
 
 	mat3 rot = mat3(M);
-
     vertNormal = normalize(rot*Normal.xyz);
 
     gl_Position = pos;
