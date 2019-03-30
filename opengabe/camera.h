@@ -4,7 +4,7 @@
 
 class Camera {
 public:
-	Camera();
+	Camera(glm::vec3 pos = { 0,0,0 }, glm::vec2 rot = { 0,0 });
 
 	// called every frame to process mouse and keyboard inputs
 	// and update the view matrix
@@ -20,6 +20,9 @@ public:
 	void rotate(glm::vec2 r) { m_rot += r; }
 	// add to position
 	void move(glm::vec3 d) { m_pos += d; }
+
+	Camera* setPosition(glm::vec3 p) { m_pos = p; return this; }
+	Camera* setRotation(glm::vec2 r) { m_rot = r; return this; }
 
 	// sets whether or not the cursor is captured by the game
 	void setLockCursor(bool l);

@@ -3,7 +3,7 @@
 #include "sceneobject.h"
 
 class OBJMesh;
-class PhongShader;
+class LitShader;
 
 class Drawable : public SceneObject
 {
@@ -12,11 +12,11 @@ public:
 		SceneObject* parent = nullptr);
 
 	Drawable* setMesh(OBJMesh* mesh) { m_mesh = mesh; return this; }
-	Drawable* setShader(PhongShader* s) { m_shader = s; return this; }
+	Drawable* setShader(LitShader* s) { m_shader = s; return this; }
 
 	void draw();
 
 private:
 	OBJMesh* m_mesh;
-	PhongShader* m_shader;
+	LitShader* m_shader;
 };

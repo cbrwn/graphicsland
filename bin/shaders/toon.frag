@@ -28,7 +28,7 @@ uniform sampler2D toonRampTexture;
 
 // material info
 uniform vec3 Ka; // ambient
-uniform vec3 Kd; // diffuse
+uniform vec3 Kd = vec3(1.0,1.0,1.0); // diffuse
 uniform vec3 Ks; // specular
 uniform vec3 Ke; // emission
 uniform float opacity = 1.0;
@@ -76,14 +76,14 @@ void main() {
 		vec3 Lm = normalize(light.pos - vertPos);
 		float lightvsnormal = clamp(dot(Lm, norm), 0.0, 1.0);
 
-		lightvsnormal = texture(toonRampTexture, vec2(lightvsnormal, 0.0)).r;
+		lightvsnormal = texture(toonRampTexture, vec2(lightvsnormal, 0.5)).r;
 
 		vec4 diffusePart = (vec4(Kd, opacity) * texColor ) * lightvsnormal * light.diffuse;
 
 		vec3 Rm = reflect(-Lm, norm);
 		float reflection = pow(max(dot(Rm, viewDir), 0.0), specularPower);
 
-		reflection = texture(toonRampTexture, vec2(reflection, 0.0)).r;
+		reflection = 0.0;//texture(toonRampTexture, vec2(reflection, 0.5)).r;
 
 		vec4 specularPart = (vec4(Ks,1.0) * specTex) * reflection * light.specular;
 

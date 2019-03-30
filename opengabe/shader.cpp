@@ -210,6 +210,16 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 }
 
 //----------------------------
+// bind texture unit by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindTexUniform(int ID, const int value)
+{
+	use();
+	glUniform1i(ID, value);
+	return this;
+}
+
+//----------------------------
 // bind unsigned int by ID
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const unsigned int value)
@@ -255,6 +265,14 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::mat4& value)
 ShaderProgram* ShaderProgram::bindUniform(const char* name, const float value)
 {
 	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind texture unit by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindTexUniform(const char* name, const int value)
+{
+	return bindTexUniform(getUniform(name), value);
 }
 
 //----------------------------

@@ -61,6 +61,8 @@ public:
 	ShaderProgram* bindUniform(int ID, const glm::vec4& value);
 	ShaderProgram* bindUniform(int ID, const glm::mat4& value);
 	ShaderProgram* bindUniform(int ID, const unsigned int value);
+	// texture unit binding
+	ShaderProgram* bindTexUniform(int ID, const int value);
 
 	// bind using uniform name
 	ShaderProgram* bindUniform(const char* name, const float value);
@@ -68,6 +70,8 @@ public:
 	ShaderProgram* bindUniform(const char* name, const glm::vec4& value);
 	ShaderProgram* bindUniform(const char* name, const glm::mat4& value);
 	ShaderProgram* bindUniform(const char* name, const unsigned int value);
+	// texture unit binding
+	ShaderProgram* bindTexUniform(const char* name, const int value);
 
 private:
 	unsigned int m_handle;

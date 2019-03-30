@@ -2,10 +2,11 @@
 
 #include <GLFW/glfw3.h>
 
-Camera::Camera()
+#include <cstdio>
+
+Camera::Camera(glm::vec3 pos, glm::vec2 rot)
+	: m_pos(pos), m_rot(rot)
 {
-	m_pos = glm::vec3(0);
-	m_rot = glm::vec3(0);
 	m_view = glm::mat4(1);
 
 	m_moveSpeed = 10.0f;
@@ -14,7 +15,8 @@ Camera::Camera()
 }
 
 // upd8
-void Camera::update(float delta) {
+void Camera::update(float delta)
+{
 
 	// get pointer to context for input stuff
 	GLFWwindow* win = glfwGetCurrentContext();
@@ -41,10 +43,16 @@ void Camera::update(float delta) {
 	// down
 	if (glfwGetKey(win, GLFW_KEY_Q))
 		move -= trans[1];
-	this->move(glm::vec3(move)*m_moveSpeed*delta);
+
+	float moveSpeed = m_moveSpeed;
+	if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT))
+		moveSpeed *= 10.0f;
+
+	this->move(glm::vec3(move)*moveSpeed*delta);
 
 
-	if (m_lockCursor) {
+	if (m_lockCursor)
+	{
 		// rotation
 
 		// get window size for locking and stuff homie
@@ -100,21 +108,18 @@ void Camera::setLockCursor(bool l)
 	glfwSetInputMode(win, GLFW_CURSOR, l ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
 	// reset the mouse position to the center of the window when disabled
-	if (!l) {
-		int wx, wy;
-		glfwGetWindowSize(win, &wx, &wy);
-		glfwSetCursorPos(win, wx / 2, wy / 2);
-	}
-
+	int wx, wy;
+	glfwGetWindowSize(win, &wx, &wy);
+	glfwSetCursorPos(win, wx / 2, wy / 2);
 }
 
 void Camera::updateProjectionMatrix(int windowWidth, int windowHeight,
 	float verticalFov, float near, float far)
 {
 	m_proj = glm::perspective(
-			glm::pi<float>() * verticalFov,
-			windowWidth / (float)windowHeight,
-			near,
-			far
-		);
+		glm::pi<float>() * verticalFov,
+		windowWidth / (float)windowHeight,
+		near,
+		far
+	);
 }

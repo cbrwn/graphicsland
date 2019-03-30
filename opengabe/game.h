@@ -8,7 +8,7 @@ struct GLFWwindow;
 class Scene;
 class OBJMesh;
 class Drawable;
-class PhongShader;
+class LitShader;
 class ShaderProgram;
 
 class Game {
@@ -40,7 +40,7 @@ private:
 	OBJMesh *m_dragon;
 	OBJMesh *m_buddha;
 
-	PhongShader* m_shader;
+	LitShader* m_shader;
 
 	std::vector<Drawable*> m_drawables;
 

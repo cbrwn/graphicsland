@@ -1,79 +1,39 @@
 #include "toon.h"
 
-ToonShader::ToonShader(bool textured) : ShaderProgram()
+#include "Texture.h"
+
+#include "gl_core_4_4.h"
+
+ToonShader::ToonShader() : LitShader()
 {
-	loadShader(ShaderStage::VERTEX, "shaders/phong.vert");
-	loadShader(ShaderStage::FRAGMENT, "shaders/phong.frag");
+	// load ramp texture
+	m_rampTexture = new Texture("./shaders/toon_ramp.png");
+	m_rampTexture->bind(0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	loadShader(ShaderStage::VERTEX, "shaders/toon.vert");
+	loadShader(ShaderStage::FRAGMENT, "shaders/toon.frag");
 	link();
 
 	use();
-	bindUniform("textured", textured ? 1U : 0U);
 
 	setLightCount(1);
 
 	setLight(0, { {10,10,10}, {1,1,1,1}, {1,1,1,1} });
 }
 
-ToonShader* ToonShader::setLight(unsigned int index,
-	ToonShader::Light const& info)
+ToonShader::~ToonShader()
 {
-	setLightPos(index, info.position);
-	setLightDiffuse(index, info.diffuse);
-	setLightSpecular(index, info.specular);
-	return this;
+	delete m_rampTexture;
 }
 
-ToonShader* ToonShader::setAmbientLight(float f)
+void ToonShader::beforeDraw()
 {
-	bindUniform("ambientLight", f);
-	return this;
-}
+	bindTexUniform("toonRampTexture", 7);
 
-ToonShader* ToonShader::setLightPos(unsigned int index, glm::vec3 const& p)
-{
-	bindUniform(getUniformName("pos", index).c_str(), p);
-	return this;
-}
-
-ToonShader* ToonShader::setLightDiffuse(unsigned int index,
-	glm::vec4 const& p)
-{
-	bindUniform(getUniformName("diffuse", index).c_str(), p);
-	return this;
-}
-
-ToonShader* ToonShader::setLightSpecular(unsigned int index,
-	glm::vec4 const& p)
-{
-	bindUniform(getUniformName("specular", index).c_str(), p);
-	return this;
-}
-
-ToonShader* ToonShader::setMVP(glm::mat4 const& mvp)
-{
-	bindUniform("MVP", mvp);
-	return this;
-}
-
-ToonShader* ToonShader::setViewMatrix(glm::mat4 const& v)
-{
-	bindUniform("V", v);
-	return this;
-}
-
-ToonShader* ToonShader::setModelMatrix(glm::mat4 const& m)
-{
-	bindUniform("M", m);
-	return this;
-}
-
-std::string ToonShader::getUniformName(std::string attrib, unsigned int index)
-{
-	return "lights[" + std::to_string(index) + "]." + attrib;
-}
-
-ToonShader* ToonShader::setLightCount(unsigned int c)
-{
-	bindUniform("lightCount", c);
-	return this;
+	// bind ramp texture
+	m_rampTexture->bind(7);
 }

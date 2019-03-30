@@ -21,9 +21,10 @@ void Drawable::draw()
 	mat4 viewMatrix = m_scene->getCamera()->getView();
 	mat4 projMatrix = m_scene->getCamera()->getProjection();
 
+	m_shader->use();
 	m_shader->setModelMatrix(modelMatrix)
 		->setViewMatrix(viewMatrix)
 		->setMVP(projMatrix * viewMatrix * modelMatrix);
-	m_shader->use();
+	m_shader->beforeDraw();
 	m_mesh->draw();
 }

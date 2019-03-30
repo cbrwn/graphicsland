@@ -138,6 +138,7 @@
     <ClCompile Include="drawable.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="gl_core_4_4.c" />
+    <ClCompile Include="litshader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="OBJMesh.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="drawable.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="gl_core_4_4.h" />
+    <ClInclude Include="litshader.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="OBJMesh.h" />
     <ClInclude Include="phong.h" />

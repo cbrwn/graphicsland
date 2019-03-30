@@ -11,7 +11,7 @@
 #include <Windows.h>
 #endif
 
-#include "phong.h"
+#include "toon.h"
 #include "scene.h"
 #include "shader.h"
 #include "camera.h"
@@ -87,11 +87,11 @@ int Game::init(char const* title, int width, int height)
 	}
 
 	// create shader
-	m_shader = new PhongShader(false);
-	m_shader->setLightCount(2)
+	m_shader = new ToonShader();
+	m_shader->setLightCount(1)
 		->setLight(0, {
 			{20,20,20}, // pos
-			glm::vec4{1, 1, 1, 1}/2.0f, // diffuse
+			glm::vec4{1, 1, 1, 1}/1.0f, // diffuse
 			{1, 1, 1, 1} // specular
 			})
 		->setLight(1, {
@@ -106,11 +106,16 @@ int Game::init(char const* title, int width, int height)
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
 	//m_bunny->load("models/spear/soulspear.obj", true, true);
-	m_bunny->load("models/spear/soulspear.obj", !!!!!!!!!!false , true);
+	m_bunny->load("models/Lucy.obj", !!!!!!!!!!false , true);
 	//m_dragon->load("models/Dragon.obj");
 	//m_buddha->load("models/Buddha.obj");
 
 	m_scene = new Scene();
+	m_scene->getCamera()->setPosition(
+		{ -8, 13, 16 }
+	)->setRotation(
+		{ -0.27f, -0.47f }
+	);
 
 	m_drawables.push_back(new Drawable({ 0,0,0 }));
 	m_drawables.back()->setMesh(m_bunny)->setShader(m_shader);
@@ -244,9 +249,9 @@ void Game::update(float delta)
 	m_postShader->bindUniform("swirlAmount", sinf(m_timer*20.0f)*0.2f);
 
 	m_shader->setLightPos(1, {
-		sinf(m_timer*2.0f) * 10.0f,
+		sinf(m_timer*2.0f) * 50.0f,
 		4.0f,
-		cosf(m_timer*2.0f)*10.0f
+		cosf(m_timer*2.0f)*50.0f
 		});
 }
 

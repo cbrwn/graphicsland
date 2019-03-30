@@ -72,6 +72,9 @@
     <ClCompile Include="toon.cpp">
       <Filter>Source Files\shaders</Filter>
     </ClCompile>
+    <ClCompile Include="litshader.cpp">
+      <Filter>Source Files\shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gl_core_4_4.h">
@@ -117,6 +120,9 @@
       <Filter>Header Files\scene</Filter>
     </ClInclude>
     <ClInclude Include="toon.h">
+      <Filter>Header Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="litshader.h">
       <Filter>Header Files\shaders</Filter>
     </ClInclude>
   </ItemGroup>
