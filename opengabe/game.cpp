@@ -12,6 +12,7 @@
 #endif
 
 #include "toon.h"
+#include "phong.h"
 #include "scene.h"
 #include "shader.h"
 #include "camera.h"
@@ -58,6 +59,7 @@ int Game::init(char const* title, int width, int height)
 		return 1;
 
 	//glfwWindowHint(GLFW_DECORATED, false);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 	if (!m_window)
 	{
@@ -74,6 +76,7 @@ int Game::init(char const* title, int width, int height)
 		return 3;
 	}
 
+	glEnable(GL_MULTISAMPLE);
 	// create framebuffer used for post effects
 	setupFramebuffer();
 
@@ -87,12 +90,12 @@ int Game::init(char const* title, int width, int height)
 	}
 
 	// create shader
-	m_shader = new ToonShader();
+	m_shader = new PhongShader();
 	m_shader->setLightCount(1)
 		->setLight(0, {
 			{20,20,20}, // pos
-			glm::vec4{1, 1, 1, 1}/1.0f, // diffuse
-			{1, 1, 1, 1} // specular
+			glm::vec4{1, 1, 1, 1} / 0.5f, // diffuse
+			glm::vec4{1, 1, 1, 1}*2.0f // specular
 			})
 		->setLight(1, {
 			{20,20,20}, // pos
@@ -106,15 +109,16 @@ int Game::init(char const* title, int width, int height)
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
 	//m_bunny->load("models/spear/soulspear.obj", true, true);
-	m_bunny->load("models/Lucy.obj", !!!!!!!!!!false , true);
+	m_bunny->load("models/spear/soulspear.obj", !!!!!!!!!!false, true);
 	//m_dragon->load("models/Dragon.obj");
 	//m_buddha->load("models/Buddha.obj");
 
+	// Pos: (-49.69, 57.52, 50.18), Rot: (-0.48, -0.72)
 	m_scene = new Scene();
 	m_scene->getCamera()->setPosition(
-		{ -8, 13, 16 }
+		{ -49, 57, 50}
 	)->setRotation(
-		{ -0.27f, -0.47f }
+		{ -0.48f, -0.72f}
 	);
 
 	m_drawables.push_back(new Drawable({ 0,0,0 }));
@@ -162,6 +166,15 @@ void Game::loop()
 		update(delta);
 
 		draw();
+
+		int _w, _h;
+		glfwGetWindowSize(m_window, &_w, &_h);
+
+		// blit multisampled buffer to regular one
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ifbo);
+		glBlitFramebuffer(0, 0, _w, _h, 0, 0, _w, _h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
 		drawPost();
 
 		glfwSwapBuffers(m_window);
@@ -201,7 +214,7 @@ void Game::drawPost()
 	glBindVertexArray(m_quadVao);
 	glDisable(GL_DEPTH_TEST);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_itex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -235,6 +248,9 @@ void Game::update(float delta)
 		cam->setLockCursor(true);
 	}
 
+	if (glfwGetKey(m_window, GLFW_KEY_P))
+		cam->printTransform();
+
 
 	m_timer += delta;
 
@@ -264,6 +280,10 @@ void Game::setupFramebuffer()
 		glDeleteFramebuffers(1, &m_fbo);
 		glDeleteTextures(1, &m_tex);
 		glDeleteRenderbuffers(1, &m_rbo);
+
+		glDeleteFramebuffers(1, &m_ifbo);
+		glDeleteTextures(1, &m_itex);
+		glDeleteRenderbuffers(1, &m_irbo);
 	}
 
 	// create buffer
@@ -273,29 +293,57 @@ void Game::setupFramebuffer()
 
 	// create texture for frame buffer
 	glGenTextures(1, &m_tex);
-	glBindTexture(GL_TEXTURE_2D, m_tex);
+	//glBindTexture(GL_TEXTURE_2D, m_tex);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_tex);
 
 	int w, h;
 	glfwGetWindowSize(m_window, &w, &h);
 	//w /= 8;
 	//h /= 8;
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SAMPLES, GL_RGB, w, h, 1);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	//glBindTexture(GL_TEXTURE_2D, 0);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_tex, 0);
 
 	// make render buffer for depth/stencil since we won't use them in post
 	// processing
 	glGenRenderbuffers(1, &m_rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, SAMPLES, GL_DEPTH24_STENCIL8, w, h);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+	// ===========================
+	// intermediate framebuffer creation
+	// ===========================
+	// intermediate framebuffer
+	glGenFramebuffers(1, &m_ifbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_ifbo);
+	// intermediate texture
+	glGenTextures(1, &m_itex);
+	glBindTexture(GL_TEXTURE_2D, m_itex);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_itex, 0);
+
+	glGenRenderbuffers(1, &m_irbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, m_irbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	if (resized)
 		return;
