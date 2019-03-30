@@ -31,6 +31,8 @@ public:
 
 	void updateProjectionMatrix(int windowWidth, int windowHeight,
 		float verticalFov = 0.25f, float near = 0.1f, float far = 1000.0f);
+
+	void printTransform();
 private:
 	// how fast move.
 	float m_moveSpeed;

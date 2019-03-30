@@ -123,3 +123,10 @@ void Camera::updateProjectionMatrix(int windowWidth, int windowHeight,
 		far
 	);
 }
+
+void Camera::printTransform()
+{
+	printf("Pos: (%.2f, %.2f, %.2f), Rot: (%.2f, %.2f)\n",
+		m_pos.x, m_pos.y, m_pos.z,
+		m_rot.x, m_rot.y);
+}
