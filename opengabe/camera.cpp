@@ -47,6 +47,8 @@ void Camera::update(float delta)
 	float moveSpeed = m_moveSpeed;
 	if (glfwGetKey(win, GLFW_KEY_LEFT_SHIFT))
 		moveSpeed *= 10.0f;
+	if (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL))
+		moveSpeed /= 10.0f;
 
 	this->move(glm::vec3(move)*moveSpeed*delta);
 

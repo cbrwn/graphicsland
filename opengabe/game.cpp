@@ -58,6 +58,8 @@ int Game::init(char const* title, int width, int height)
 	if (!glfwInit())
 		return 1;
 
+	focalDist = 1.0f;
+
 	//glfwWindowHint(GLFW_DECORATED, false);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 	m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -94,7 +96,7 @@ int Game::init(char const* title, int width, int height)
 	m_shader->setLightCount(2)
 		->setLight(0, {
 			{20,20,20}, // pos
-			glm::vec4{1, 1, 1, 1} * 0.5f, // diffuse
+			glm::vec4{1, 1, 1, 1} *0.5f, // diffuse
 			glm::vec4{1, 1, 1, 1}*0.5f // specular
 			})
 		->setLight(1, {
@@ -108,8 +110,8 @@ int Game::init(char const* title, int width, int height)
 	m_bunny = new OBJMesh();
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
-	//m_bunny->load("models/spear/soulspear.obj", true, true);
-	m_bunny->load("models/spear/soulspear.obj", !!!!!!!!!!false, true);
+	m_bunny->load("models/model.obj", true, true);
+	//m_bunny->load("models/Dragon.obj", !!!!!!!!!!false, true);
 	//m_dragon->load("models/Dragon.obj");
 	//m_buddha->load("models/Buddha.obj");
 
@@ -272,8 +274,28 @@ void Game::update(float delta)
 
 	m_shader->setLightPos(0, cam->getTransform()[3]);
 
-	m_postShader->bindUniform("swirlAmount", sinf(m_timer*20.0f)*0.2f);
+	int _w, _h;
+	glfwGetWindowSize(m_window, &_w, &_h);
+	float* butts = new float[_w*_h];
+	glBindTexture(GL_TEXTURE_2D, m_depthTex);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, butts);
+	int index = ((_h / 2)*_w) + (_w / 2);
+	float f = -100.0f * 0.1f / (butts[index] * (100.0f - 0.1f) - 100.0f);
+	//printf("%.2f\n", focalDist);
 
+	float dif = focalDist - f;
+	float sign = dif < 0 ? -1 : 1;
+
+	if (fabsf(dif) < 1)
+		sign *= dif*dif;
+
+	focalDist -= sign * delta * 10.0f;
+
+	m_postShader->bindUniform("focalDepth", focalDist);
+
+	delete[] butts;
+
+	return;
 	m_shader->setLightPos(1, {
 		sinf(m_timer*2.0f) * 50.0f,
 		4.0f,
@@ -391,7 +413,7 @@ void Game::setupFramebuffer()
 
 	m_postShader = new ShaderProgram();
 	m_postShader->loadShader(ShaderStage::VERTEX, "shaders/post/post.vert");
-	m_postShader->loadShader(ShaderStage::FRAGMENT, "shaders/post/depth_of_field_shader_v2_final_REAL_submission_cameron_brown.frag");
+	m_postShader->loadShader(ShaderStage::FRAGMENT, "shaders/post/dof.frag");
 	m_postShader->link();
 
 	m_postShader->use();

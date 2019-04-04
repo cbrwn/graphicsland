@@ -62,5 +62,7 @@ private:
 
 	unsigned int currentTexture;
 
+	float focalDist;
+
 	void drawPost();
 };

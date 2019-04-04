@@ -13,8 +13,8 @@ in vec2 uv;
 
 //float width = screenTexture; //texture width
 //float height = screenTexture; //texture height
-float width = 600; //texture width
-float height = 600; //texture height
+float width = 1920; //texture width
+float height = 1080; //texture height
 
 vec2 texel = vec2(1.0/width,1.0/height);
 
@@ -26,7 +26,7 @@ uniform float focalLength; //focal length in mm
 uniform float fstop; //f-stop value
 uniform bool showFocus; //show debug focus point and focal range (red = focal point, green = focal range)
 */
-float focalDepth = 1.5;
+uniform float focalDepth = 1.5;
 float focalLength = 12.0;
 float fstop = 2.0;
 bool showFocus = false;
@@ -41,8 +41,8 @@ float zfar = 100.0; //camera clipping end
 //------------------------------------------
 //user variables
 
-int samples = 3; //samples on the first ring
-int rings = 3; //ring count
+int samples = 9; //samples on the first ring
+int rings = 5; //ring count
 
 bool manualdof = false; //manual dof calculation
 float ndofstart = 1.0; //near dof blur start
@@ -57,15 +57,15 @@ float vignout = 1.3; //vignetting outer border
 float vignin = 0.0; //vignetting inner border
 float vignfade = 22.0; //f-stops till vignete fades
 
-bool autofocus = true; //use autofocus in shader? disable if you use external focalDepth value
+bool autofocus = false; //use autofocus in shader? disable if you use external focalDepth value
 vec2 focus = vec2(0.5,0.5); // autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 5.0; //clamp value of max blur (0.0 = no blur,1.0 default)
 
 float threshold = 0.7; //highlight threshold;
-float gain = 100.0; //highlight gain;
+float gain = 1.0; //highlight gain;
 
 float bias = 0.5; //bokeh edge bias
-float fringe = 0.7; //bokeh chromatic aberration/fringing
+float fringe = 7.7; //bokeh chromatic aberration/fringing
 
 bool noise = false; //use noise instead of pattern for sample dithering
 float namount = 0.0001; //dither amount
@@ -79,7 +79,7 @@ not looking good with small sample and ring count
 looks okay starting from samples = 4, rings = 4
 */
 
-bool pentagon = false; //use pentagon as bokeh shape?
+bool pentagon = true; //use pentagon as bokeh shape?
 float feather = 0.4; //pentagon shape feather
 
 //------------------------------------------
