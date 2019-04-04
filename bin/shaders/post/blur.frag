@@ -3,6 +3,7 @@
 in vec2 uv;
 
 uniform sampler2D screenTexture;
+uniform sampler2D depthTexture;
 
 out vec4 fragColor;
 
@@ -27,7 +28,7 @@ void main()
         2/16.0, 4/16.0, 2/16.0,
         1/16.0, 2/16.0, 1/16.0
     );
-    
+
     vec3 sampleTex[9];
     for(int i = 0; i < 9; i++)
     {

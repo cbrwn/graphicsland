@@ -91,11 +91,11 @@ int Game::init(char const* title, int width, int height)
 
 	// create shader
 	m_shader = new PhongShader();
-	m_shader->setLightCount(1)
+	m_shader->setLightCount(2)
 		->setLight(0, {
 			{20,20,20}, // pos
-			glm::vec4{1, 1, 1, 1} / 0.5f, // diffuse
-			glm::vec4{1, 1, 1, 1}*2.0f // specular
+			glm::vec4{1, 1, 1, 1} * 0.5f, // diffuse
+			glm::vec4{1, 1, 1, 1}*0.5f // specular
 			})
 		->setLight(1, {
 			{20,20,20}, // pos
@@ -116,9 +116,9 @@ int Game::init(char const* title, int width, int height)
 	// Pos: (-49.69, 57.52, 50.18), Rot: (-0.48, -0.72)
 	m_scene = new Scene();
 	m_scene->getCamera()->setPosition(
-		{ -49, 57, 50}
+		{ -49, 57, 50 }
 	)->setRotation(
-		{ -0.48f, -0.72f}
+		{ -0.48f, -0.72f }
 	);
 
 	m_drawables.push_back(new Drawable({ 0,0,0 }));
@@ -173,7 +173,7 @@ void Game::loop()
 		// blit multisampled buffer to regular one
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ifbo);
-		glBlitFramebuffer(0, 0, _w, _h, 0, 0, _w, _h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebuffer(0, 0, _w, _h, 0, 0, _w, _h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 		drawPost();
 
@@ -215,6 +215,8 @@ void Game::drawPost()
 	glDisable(GL_DEPTH_TEST);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_itex);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_depthTex);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -251,6 +253,14 @@ void Game::update(float delta)
 	if (glfwGetKey(m_window, GLFW_KEY_P))
 		cam->printTransform();
 
+	if (glfwGetKey(m_window, GLFW_KEY_R))
+	{
+		if (currentTexture == m_itex)
+			currentTexture = m_depthTex;
+		else
+			currentTexture = m_itex;
+	}
+
 
 	m_timer += delta;
 
@@ -283,7 +293,9 @@ void Game::setupFramebuffer()
 
 		glDeleteFramebuffers(1, &m_ifbo);
 		glDeleteTextures(1, &m_itex);
-		glDeleteRenderbuffers(1, &m_irbo);
+		//glDeleteRenderbuffers(1, &m_irbo);
+
+		glDeleteTextures(1, &m_depthTex);
 	}
 
 	// create buffer
@@ -305,9 +317,11 @@ void Game::setupFramebuffer()
 
 	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	//glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_tex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, m_depthTex, 0);
 
 	// make render buffer for depth/stencil since we won't use them in post
 	// processing
@@ -317,6 +331,7 @@ void Game::setupFramebuffer()
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
@@ -334,14 +349,18 @@ void Game::setupFramebuffer()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_itex, 0);
+	// and depth buffer
+	glGenTextures(1, &m_depthTex);
+	glBindTexture(GL_TEXTURE_2D, m_depthTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, w, h, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glGenRenderbuffers(1, &m_irbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, m_irbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_itex, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_depthTex, 0);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
@@ -372,9 +391,12 @@ void Game::setupFramebuffer()
 
 	m_postShader = new ShaderProgram();
 	m_postShader->loadShader(ShaderStage::VERTEX, "shaders/post/post.vert");
-	m_postShader->loadShader(ShaderStage::FRAGMENT, "shaders/post/post.frag");
+	m_postShader->loadShader(ShaderStage::FRAGMENT, "shaders/post/depth_of_field_shader_v2_final_REAL_submission_cameron_brown.frag");
 	m_postShader->link();
 
 	m_postShader->use();
 	m_postShader->bindUniform("screenTexture", 0U);
+	m_postShader->bindTexUniform("depthTexture", 1U);
+
+	currentTexture = m_itex;
 }

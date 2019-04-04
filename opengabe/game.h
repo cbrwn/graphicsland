@@ -51,12 +51,16 @@ private:
 	///////////////////////////
 	// frame buffer stuff
 	unsigned int m_fbo, m_tex, m_rbo;
+	// depth buffer test
+	unsigned int m_depthTex;
 	// intermediate rendering stuff for MSAA
-	unsigned int m_ifbo, m_itex, m_irbo;
+	unsigned int m_ifbo, m_itex;//, m_irbo;
 	// quad for rendering framebuffer
 	unsigned int m_quadVao, m_quadVbo;
 	// shader
 	ShaderProgram* m_postShader;
+
+	unsigned int currentTexture;
 
 	void drawPost();
 };
