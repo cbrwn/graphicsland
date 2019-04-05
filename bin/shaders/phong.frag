@@ -44,13 +44,12 @@ void main() {
 	vec3 norm = vertNormal;
 	if((textureFlags & 0x2) > 0) {
 		// make tangent basis matrix
-		mat3 tbn;
-		tbn[0] = tangent.xyz;
-		tbn[1] = cross(vertNormal, tangent.xyz);
-		tbn[2] = vertNormal;
-
+		vec3 t = tangent.xyz;
+		vec3 b = cross(vertNormal, tangent.xyz)*tangent.w ;
+		mat3 tbn = mat3(t, b, vertNormal);
+//
 		// transform normal map from 0-1 to -1-1
-		vec3 normTexture = (texture(normalTexture, uv).xyz * 2.0)-(vec3(1));
+		vec3 normTexture = (texture(normalTexture, uv).xyz * 2.0)-1;
 		norm = tbn * normTexture;
 	}
 
@@ -84,5 +83,5 @@ void main() {
 		col += (diffusePart + specularPart);
 	}
 
-	fragColor = col + vec4(Ke, opacity);
+	fragColor = vec4(norm,1.0);//col + vec4(Ke, opacity);
 }

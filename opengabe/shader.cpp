@@ -202,6 +202,16 @@ int ShaderProgram::getUniform(const char* name)
 //----------------------------
 // bind float by ID
 //----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const int value)
+{
+	use();
+	glUniform1iv(ID, 1, &value);
+	return this;
+}
+
+//----------------------------
+// bind float by ID
+//----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const float value)
 {
 	use();
@@ -257,6 +267,14 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::mat4& value)
 	use();
 	glUniformMatrix4fv(ID, 1, GL_FALSE, &value[0][0]);
 	return this;
+}
+
+//----------------------------
+// bind int by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const int value)
+{
+	return bindUniform(getUniform(name), value);
 }
 
 //----------------------------

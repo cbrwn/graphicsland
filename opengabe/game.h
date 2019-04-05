@@ -62,7 +62,18 @@ private:
 
 	unsigned int currentTexture;
 
-	float focalDist;
+	bool m_autoFocus;
+
+	float m_fstop;
+	float m_focalDist;
+	float m_focalLength;
+	float m_coc;
+
+	float m_bias;
+	float m_fringe;
+
+	int m_rings;
+	int m_samples;
 
 	void drawPost();
 };

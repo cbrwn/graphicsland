@@ -27,8 +27,8 @@ uniform float fstop; //f-stop value
 uniform bool showFocus; //show debug focus point and focal range (red = focal point, green = focal range)
 */
 uniform float focalDepth = 1.5;
-float focalLength = 12.0;
-float fstop = 2.0;
+uniform float focalLength = 12.0;
+uniform float fstop = 2.0;
 bool showFocus = false;
 
 /* 
@@ -41,8 +41,8 @@ float zfar = 100.0; //camera clipping end
 //------------------------------------------
 //user variables
 
-int samples = 9; //samples on the first ring
-int rings = 5; //ring count
+uniform int samples = 9; //samples on the first ring
+uniform int rings = 5; //ring count
 
 bool manualdof = false; //manual dof calculation
 float ndofstart = 1.0; //near dof blur start
@@ -50,7 +50,7 @@ float ndofdist = 2.0; //near dof blur falloff distance
 float fdofstart = 1.0; //far dof blur start
 float fdofdist = 3.0; //far dof blur falloff distance
 
-float CoC = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
+uniform float CoC = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
 
 bool vignetting = true; //use optical lens vignetting?
 float vignout = 1.3; //vignetting outer border
@@ -64,8 +64,8 @@ float maxblur = 5.0; //clamp value of max blur (0.0 = no blur,1.0 default)
 float threshold = 0.7; //highlight threshold;
 float gain = 1.0; //highlight gain;
 
-float bias = 0.5; //bokeh edge bias
-float fringe = 7.7; //bokeh chromatic aberration/fringing
+uniform float bias = 0.5; //bokeh edge bias
+uniform float fringe = 7.7; //bokeh chromatic aberration/fringing
 
 bool noise = false; //use noise instead of pattern for sample dithering
 float namount = 0.0001; //dither amount
@@ -143,7 +143,6 @@ float bdepth(vec2 coords) //blurring depth
 	kernel[0] = 1.0/16.0;   kernel[1] = 2.0/16.0;   kernel[2] = 1.0/16.0;
 	kernel[3] = 2.0/16.0;   kernel[4] = 4.0/16.0;   kernel[5] = 2.0/16.0;
 	kernel[6] = 1.0/16.0;   kernel[7] = 2.0/16.0;   kernel[8] = 1.0/16.0;
-	
 	
 	for( int i=0; i<9; i++ )
 	{

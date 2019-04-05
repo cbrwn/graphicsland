@@ -5,6 +5,11 @@
 #include "gl_core_4_4.h"
 #include <GLFW/glfw3.h>
 
+// imgui
+#include <imgui.h>
+#include "imgui_glfw3.h"
+//#include "imgui/imgui_impl_opengl3.h"
+
 #ifdef _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -47,6 +52,10 @@ Game::~Game()
 	glDeleteTextures(1, &m_tex);
 	glDeleteRenderbuffers(1, &m_rbo);
 
+	aie::ImGui_Shutdown();
+	//ImGui::DestroyContext(ImGui::GetCurrentContext());
+	//ImGui_ImplOpenGL3_Shutdown();
+
 	if (m_window)
 		glfwDestroyWindow(m_window);
 
@@ -58,7 +67,7 @@ int Game::init(char const* title, int width, int height)
 	if (!glfwInit())
 		return 1;
 
-	focalDist = 1.0f;
+	m_focalDist = 1.0f;
 
 	//glfwWindowHint(GLFW_DECORATED, false);
 	glfwWindowHint(GLFW_SAMPLES, 4);
@@ -81,6 +90,13 @@ int Game::init(char const* title, int width, int height)
 	glEnable(GL_MULTISAMPLE);
 	// create framebuffer used for post effects
 	setupFramebuffer();
+
+	//ImGui::CreateContext();
+	//ImGuiIO& io = ImGui::GetIO();
+	//io.MouseDrawCursor = false;
+	//io.Fonts->Build();
+	//ImGui_ImplOpenGL3_Init();
+	aie::ImGui_Init(m_window, true);
 
 	int monitorCount;
 	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
@@ -110,7 +126,7 @@ int Game::init(char const* title, int width, int height)
 	m_bunny = new OBJMesh();
 	m_dragon = new OBJMesh();
 	m_buddha = new OBJMesh();
-	m_bunny->load("models/model.obj", true, true);
+	m_bunny->load("models/spear/soulspear.obj", true, true);
 	//m_bunny->load("models/Dragon.obj", !!!!!!!!!!false, true);
 	//m_dragon->load("models/Dragon.obj");
 	//m_buddha->load("models/Buddha.obj");
@@ -148,6 +164,19 @@ int Game::init(char const* title, int width, int height)
 		((Game*)glfwGetWindowUserPointer(win))->setupFramebuffer();
 	});
 
+	// camera stuff
+	m_fstop = 2.0f;
+	m_focalDist = 1.5f;
+	m_focalLength = 12.5f;
+	m_autoFocus = true;
+	m_coc = 0.03f;
+
+	m_samples = 9;
+	m_rings = 5;
+
+	m_bias = 0.5;
+	m_fringe = 7.7;
+
 	return 0;
 }
 
@@ -165,6 +194,10 @@ void Game::loop()
 		float delta = (float)(currentTime - lastTime);
 		lastTime = currentTime;
 
+		//ImGui_ImplOpenGL3_NewFrame();
+		aie::ImGui_NewFrame();
+		//ImGui::NewFrame();
+
 		update(delta);
 
 		draw();
@@ -178,6 +211,7 @@ void Game::loop()
 		glBlitFramebuffer(0, 0, _w, _h, 0, 0, _w, _h, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 		drawPost();
+		ImGui::Render();
 
 		glfwSwapBuffers(m_window);
 		glfwPollEvents();
@@ -246,7 +280,7 @@ void Game::update(float delta)
 		m_escapeDown = false;
 	}
 
-	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_1)
+	if (glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_2)
 		&& !cam->getLockCursor())
 	{
 		cam->setLockCursor(true);
@@ -263,7 +297,6 @@ void Game::update(float delta)
 			currentTexture = m_itex;
 	}
 
-
 	m_timer += delta;
 
 	//m_drawables[0]->rotate({ 0,1 * delta,0 });
@@ -274,33 +307,45 @@ void Game::update(float delta)
 
 	m_shader->setLightPos(0, cam->getTransform()[3]);
 
-	int _w, _h;
-	glfwGetWindowSize(m_window, &_w, &_h);
-	float* butts = new float[_w*_h];
-	glBindTexture(GL_TEXTURE_2D, m_depthTex);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, butts);
-	int index = ((_h / 2)*_w) + (_w / 2);
-	float f = -100.0f * 0.1f / (butts[index] * (100.0f - 0.1f) - 100.0f);
-	//printf("%.2f\n", focalDist);
+	if (m_autoFocus) {
+		int _w, _h;
+		glfwGetWindowSize(m_window, &_w, &_h);
+		float* butts = new float[_w*_h];
+		glBindTexture(GL_TEXTURE_2D, m_depthTex);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, butts);
+		int index = ((_h / 2)*_w) + (_w / 2);
+		float f = -100.0f * 0.1f / (butts[index] * (100.0f - 0.1f) - 100.0f);
 
-	float dif = focalDist - f;
-	float sign = dif < 0 ? -1 : 1;
+		delete[] butts;
 
-	if (fabsf(dif) < 1)
-		sign *= dif*dif;
+		m_focalDist -= (m_focalDist - f) * delta * 2.0f;
+	}
 
-	focalDist -= sign * delta * 10.0f;
+	// imgui stuff
+	ImGui::Checkbox("Auto Focus", &m_autoFocus);
+	ImGui::SliderFloat("Focal Distance", &m_focalDist, 0.10f, 15);
+	ImGui::SliderFloat("Focal Length", &m_focalLength, 0.1f, 20.0f);
+	ImGui::SliderFloat("fstop", &m_fstop, 0.1f, 5.0f);
 
-	m_postShader->bindUniform("focalDepth", focalDist);
+	ImGui::SliderInt("Rings", &m_rings, 1, 20);
+	ImGui::SliderInt("Samples", &m_samples, 1, 20);
 
-	delete[] butts;
+	ImGui::SliderFloat("CoC", &m_coc, 0.0f, 0.1f);
 
-	return;
-	m_shader->setLightPos(1, {
-		sinf(m_timer*2.0f) * 50.0f,
-		4.0f,
-		cosf(m_timer*2.0f)*50.0f
-		});
+	ImGui::SliderFloat("Bias", &m_bias, 0.1f, 2.0f);
+	ImGui::SliderFloat("Fringe", &m_fringe, 0.0f, 10.0f);
+
+	m_postShader->bindUniform("focalDepth", m_focalDist);
+	m_postShader->bindUniform("focalLength", m_focalLength);
+	m_postShader->bindUniform("fstop", m_fstop);
+
+	m_postShader->bindUniform("rings", m_rings);
+	m_postShader->bindUniform("samples", m_samples);
+
+	m_postShader->bindUniform("CoC", m_coc);
+	
+	m_postShader->bindUniform("bias", m_bias);
+	m_postShader->bindUniform("fringe", m_fringe);
 }
 
 void Game::setupFramebuffer()
@@ -422,3 +467,4 @@ void Game::setupFramebuffer()
 
 	currentTexture = m_itex;
 }
+
