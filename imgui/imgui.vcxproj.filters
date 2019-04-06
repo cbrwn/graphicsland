@@ -15,33 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\aieBootstrap-master\dependencies\imgui\imgui_demo.cpp">
+    <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\aieBootstrap-master\dependencies\imgui\imgui_draw.cpp">
+    <ClCompile Include="..\dependencies\imgui\imgui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\aieBootstrap-master\dependencies\imgui\imgui.cpp">
+    <ClCompile Include="..\dependencies\imgui\imgui_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\imgui_internal.h">
+    <ClInclude Include="..\dependencies\imgui\imgui_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\stb_rect_pack.h">
+    <ClInclude Include="..\dependencies\imgui\stb_rect_pack.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\stb_textedit.h">
+    <ClInclude Include="..\dependencies\imgui\stb_textedit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\stb_truetype.h">
+    <ClInclude Include="..\dependencies\imgui\stb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\imconfig.h">
+    <ClInclude Include="..\dependencies\imgui\imconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\aieBootstrap-master\dependencies\imgui\imgui.h">
+    <ClInclude Include="..\dependencies\imgui\imgui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
