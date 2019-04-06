@@ -1,3 +1,4 @@
+#include "..\game\game.h"
 #include "game.h"
 
 #include <stdio.h>
