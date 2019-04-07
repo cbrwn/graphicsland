@@ -11,7 +11,7 @@ int main()
 #endif
 
 	Game* g = new Game();
-	int init = g->init("videogame", 854, 480, 8, false);
+	int init = g->init("videogame", 854, 480, 8, true);
 	if (init != 0)
 		return init;
 	g->loop();

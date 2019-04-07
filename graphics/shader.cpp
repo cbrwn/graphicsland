@@ -63,6 +63,9 @@ bool Shader::loadShader(ShaderStage stage, const char* filename)
 
 bool Shader::createShader(ShaderStage stage, const char* source)
 {
+	if (m_handle > 0)
+		glDeleteShader(m_handle);
+
 	m_stage = stage;
 	m_handle = makeHandle(stage);
 
@@ -139,9 +142,8 @@ ShaderProgram::~ShaderProgram()
 
 bool ShaderProgram::loadShader(ShaderStage stage, const char* filename)
 {
-	if (m_shaders[(int)stage])
-		printf("SHADER PROGRAM: Already has shader of type %u\n", (int)stage);
-	m_shaders[(int)stage] = new Shader();
+	if (!m_shaders[(int)stage])
+		m_shaders[(int)stage] = new Shader();
 	return m_shaders[(int)stage]->loadShader(stage, filename);
 }
 
@@ -240,6 +242,16 @@ ShaderProgram* ShaderProgram::bindUniform(int ID, const unsigned int value)
 }
 
 //----------------------------
+// bind vec2 by ID
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec2& value)
+{
+	use();
+	glUniform2f(ID, value.x, value.y);
+	return this;
+}
+
+//----------------------------
 // bind vec3 by ID
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(int ID, const glm::vec3& value)
@@ -297,6 +309,14 @@ ShaderProgram* ShaderProgram::bindTexUniform(const char* name, const int value)
 // bind unsigned int by name
 //----------------------------
 ShaderProgram* ShaderProgram::bindUniform(const char* name, const unsigned int value)
+{
+	return bindUniform(getUniform(name), value);
+}
+
+//----------------------------
+// bind vec2 by name
+//----------------------------
+ShaderProgram* ShaderProgram::bindUniform(const char* name, const glm::vec2& value)
 {
 	return bindUniform(getUniform(name), value);
 }

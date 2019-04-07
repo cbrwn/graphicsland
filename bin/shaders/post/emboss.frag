@@ -3,13 +3,13 @@
 in vec2 uv;
 
 uniform sampler2D screenTexture;
+uniform float kernelOffset = 300.0;
 
 out vec4 fragColor;
 
-const float offset = 1.0 / 300.0;  
-
 void main()
 {
+	float offset = 1.0 / kernelOffset;
     vec2 offsets[9] = vec2[](
         vec2(-offset,  offset), // top-left
         vec2( 0.0f,    offset), // top-center

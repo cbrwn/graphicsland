@@ -29,5 +29,10 @@ private:
 	OBJMesh* m_mesh;
 	LitShader* m_shader;
 
+	int m_selectedShader;
+	int m_lastSelectedShader;
+
 	bool m_escapeDown;
+
+	void updateSelectedShader();
 };

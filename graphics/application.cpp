@@ -18,6 +18,14 @@ Application::~Application()
 {
 	if (m_postProcessing)
 		cleanupPostProcessing();
+	delete m_postShader;
+	glDeleteVertexArrays(1, &m_quadVao);
+	glDeleteBuffers(1, &m_quadVbo);
+
+	ImGui_Shutdown();
+
+	glfwDestroyWindow(m_window);
+	glfwTerminate();
 }
 
 int Application::init(char const* title, int width, int height,
@@ -187,7 +195,7 @@ void Application::setupPostProcessing()
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_tex, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, m_depthTex, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, m_depthTex, 0);
 
 	// make render buffer for depth/stencil since we won't use them in post
 	// processing
@@ -289,8 +297,9 @@ void main(){\
 void Application::cleanupPostProcessing()
 {
 	glDeleteFramebuffers(1, &m_fbo);
-	glDeleteVertexArrays(1, &m_quadVao);
-	glDeleteBuffers(1, &m_quadVbo);
+	glDeleteFramebuffers(1, &m_ifbo);
 	glDeleteTextures(1, &m_tex);
+	glDeleteTextures(1, &m_itex);
+	glDeleteTextures(1, &m_depthTex);
 	glDeleteRenderbuffers(1, &m_rbo);
 }

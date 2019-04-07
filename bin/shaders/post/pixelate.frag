@@ -3,11 +3,13 @@
 in vec2 uv;
 
 uniform sampler2D screenTexture;
-uniform float pixelateAmount = 100.0;
+uniform vec2 resolution = vec2(100,100);
 
 out vec4 fragColor;
 
 void main()
 {
-    fragColor = texture(screenTexture, floor(uv*pixelateAmount)/pixelateAmount);
+	vec2 thisUv = floor(uv*resolution)/resolution;
+
+    fragColor = texture(screenTexture, thisUv);
 }  
