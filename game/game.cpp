@@ -15,8 +15,10 @@ Game::Game() {}
 Game::~Game()
 {
 	delete m_scene;
-	delete m_mesh;
 	delete m_shader;
+
+	for (int i = 0; i < (int)m_meshes.size(); ++i)
+		delete m_meshes[i];
 }
 
 void Game::windowResized(int width, int height)
@@ -24,7 +26,7 @@ void Game::windowResized(int width, int height)
 	Application::windowResized(width, height);
 
 	m_scene->getCamera()->updateProjectionMatrix(width, height,
-		0.25f, 0.1f, 100.0f);
+		0.25f, 0.1f, 500.0f);
 }
 
 int Game::setup()
@@ -46,11 +48,18 @@ int Game::setup()
 			{1, 1, 1, 1} // specular
 			});
 
-	m_mesh = new OBJMesh();
-	m_mesh->load("models/spear/soulspear.obj", true, true);
+	m_meshes.push_back(new OBJMesh());
+	m_meshes.push_back(new OBJMesh());
+	m_meshes.push_back(new OBJMesh());
+	m_meshes.push_back(new OBJMesh());
+
+	m_meshes[0]->load("models/spear/soulspear.obj", true, true);
+	m_meshes[1]->load("models/Dragon.obj", true, true);
+	m_meshes[2]->load("models/Bunny.obj", true, true);
+	m_meshes[3]->load("models/Lucy.obj", true, true);
 
 	m_drawables.push_back(new Drawable({ 0,0,0 }));
-	m_drawables.back()->setMesh(m_mesh)->setShader(m_shader);
+	m_drawables[0]->setMesh(m_meshes[0])->setShader(m_shader);
 
 	m_drawables[0]->scale(glm::vec3(5.0f));
 
@@ -159,6 +168,19 @@ void Game::update(float delta)
 		}
 		ImGui::Bullet();
 		ImGui::Text("W/A/S/D/Q/E to move");
+	}
+	ImGui::End();
+
+	ImGui::Begin("Model");
+	{
+		static int selectedModel = 0;
+
+		const char* items[] = {
+			"Soulspear", "Dragon", "Bunny", "Lucy"
+		};
+		ImGui::Combo("", &selectedModel, items, 4);
+
+		m_drawables[0]->setMesh(m_meshes[selectedModel]);
 	}
 	ImGui::End();
 

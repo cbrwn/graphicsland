@@ -26,7 +26,7 @@ private:
 	std::vector<Drawable*> m_drawables;
 
 	Scene* m_scene;
-	OBJMesh* m_mesh;
+	std::vector<OBJMesh*> m_meshes;
 	LitShader* m_shader;
 
 	int m_selectedShader;
