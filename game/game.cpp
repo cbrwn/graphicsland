@@ -23,7 +23,8 @@ void Game::windowResized(int width, int height)
 {
 	Application::windowResized(width, height);
 
-	m_scene->getCamera()->updateProjectionMatrix(width, height);
+	m_scene->getCamera()->updateProjectionMatrix(width, height,
+		0.25f, 0.1f, 100.0f);
 }
 
 int Game::setup()
@@ -129,6 +130,35 @@ void Game::update(float delta)
 
 			m_postShader->bindUniform("kernelOffset", emboss_offset);
 		}
+		else if (m_selectedShader == 4)
+		{
+			// DEPTH OF FIELD
+			static float dof_depth = 1.0f;
+
+			ImGui::TextColored(ImVec4{ 0,1,1,1 }, "Depth of Field Properties");
+
+			ImGui::DragFloat("Focus Depth", &dof_depth);
+
+			m_postShader->bindUniform("focalDepth", dof_depth);
+		}
+	}
+	ImGui::End();
+
+	ImGui::Begin("Controls");
+	{
+		ImGui::Bullet();
+		if (m_scene->getCamera()->getLockCursor())
+		{
+			ImGui::Text("Escape to release mouse");
+		}
+		else
+		{
+			ImGui::Text("Click to capture mouse");
+			ImGui::Bullet();
+			ImGui::Text("Escape again to exit");
+		}
+		ImGui::Bullet();
+		ImGui::Text("W/A/S/D/Q/E to move");
 	}
 	ImGui::End();
 
@@ -189,7 +219,7 @@ void Game::updateSelectedShader()
 		c = "shaders/post/emboss.frag";
 		break;
 	case 4:
-		c = "shaders/post/dof.frag";
+		c = "shaders/post/mydof.frag";
 		break;
 	}
 	m_postShader->loadShader(ShaderStage::FRAGMENT, c);
