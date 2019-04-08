@@ -27,7 +27,8 @@ private:
 
 	Scene* m_scene;
 	std::vector<OBJMesh*> m_meshes;
-	LitShader* m_shader;
+	std::vector<LitShader*> m_shaders;
+	LitShader* m_currentShader;
 
 	int m_selectedShader;
 	int m_lastSelectedShader;

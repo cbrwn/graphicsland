@@ -5,7 +5,10 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext.hpp>
 
+#include <toon.h>
 #include <phong.h>
+#include "fadeout.h"
+
 #include <scene.h>
 #include <camera.h>
 #include <OBJMesh.h>
@@ -15,8 +18,9 @@ Game::Game() {}
 Game::~Game()
 {
 	delete m_scene;
-	delete m_shader;
 
+	for (int i = 0; i < (int)m_shaders.size(); ++i)
+		delete m_shaders[i];
 	for (int i = 0; i < (int)m_meshes.size(); ++i)
 		delete m_meshes[i];
 }
@@ -35,18 +39,26 @@ int Game::setup()
 	m_scene->getCamera()->updateProjectionMatrix(m_windowWidth, m_windowHeight);
 	//windowResized(m_windowWidth, m_windowHeight);
 
-	m_shader = new PhongShader();
-	m_shader->setLightCount(2)
-		->setLight(0, {
-			{20,20,20}, // pos
-			glm::vec4{1, 1, 1, 1} *0.5f, // diffuse
-			glm::vec4{1, 1, 1, 1}*0.5f // specular
-			})
-		->setLight(1, {
-			{20,20,20}, // pos
-			{1, 1, 1, 1}, // diffuse
-			{1, 1, 1, 1} // specular
-			});
+	m_shaders.push_back(new PhongShader());
+	m_shaders.push_back(new ToonShader());
+	m_shaders.push_back(new FadeoutShader());
+
+	m_currentShader = m_shaders[0];
+
+	for (LitShader* l : m_shaders)
+	{
+		l->setLightCount(2)
+			->setLight(0, {
+				{20,20,20}, // pos
+				glm::vec4{1, 1, 1, 1} *0.5f, // diffuse
+				glm::vec4{1, 1, 1, 1}*0.5f // specular
+				})
+			->setLight(1, {
+				{20,20,20}, // pos
+				{1, 1, 1, 1}, // diffuse
+				{1, 1, 1, 1} // specular
+				});
+	}
 
 	m_meshes.push_back(new OBJMesh());
 	m_meshes.push_back(new OBJMesh());
@@ -59,7 +71,7 @@ int Game::setup()
 	m_meshes[3]->load("models/Lucy.obj", true, true);
 
 	m_drawables.push_back(new Drawable({ 0,0,0 }));
-	m_drawables[0]->setMesh(m_meshes[0])->setShader(m_shader);
+	m_drawables[0]->setMesh(m_meshes[0])->setShader(m_currentShader);
 
 	m_drawables[0]->scale(glm::vec3(5.0f));
 
@@ -174,13 +186,33 @@ void Game::update(float delta)
 	ImGui::Begin("Model");
 	{
 		static int selectedModel = 0;
+		static int selectedShader = 0;
+		static float fade_amount = 0.5f;
+		static float fade_power = 2.0f;
 
-		const char* items[] = {
+		const char* modelItems[] = {
 			"Soulspear", "Dragon", "Bunny", "Lucy"
 		};
-		ImGui::Combo("", &selectedModel, items, 4);
+		ImGui::Combo("Model", &selectedModel, modelItems, (int)m_meshes.size());
 
-		m_drawables[0]->setMesh(m_meshes[selectedModel]);
+		const char* shaderItems[] = {
+			"Phong", "Toon", "Fade Out"
+		};
+		ImGui::Combo("Shader", &selectedShader, shaderItems, (int)m_shaders.size());
+
+		m_currentShader = m_shaders[selectedShader];
+
+		m_drawables[0]->setMesh(m_meshes[selectedModel])
+			->setShader(m_currentShader);
+
+		if (selectedShader == 2)
+		{
+			ImGui::SliderFloat("Amount", &fade_amount, 0.2f, 0.5f);
+			//ImGui::SliderFloat("Power", &fade_power, 0.1f, 10.0f);
+
+			m_currentShader->bindUniform("fadeAmount", fade_amount);
+			//m_currentShader->bindUniform("fadePower", fade_power);
+		}
 	}
 	ImGui::End();
 
@@ -217,7 +249,7 @@ void Game::update(float delta)
 
 	cam->update(delta);
 
-	m_shader->setLightPos(0, cam->getTransform()[3]);
+	m_currentShader->setLightPos(0, cam->getTransform()[3]);
 }
 
 void Game::updateSelectedShader()
