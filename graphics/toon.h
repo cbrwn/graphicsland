@@ -10,6 +10,9 @@ public:
 	ToonShader();
 	~ToonShader();
 
+	/*
+		@brief Called before use, used to bind the toon ramp texture
+	*/
 	void beforeDraw() override;
 
 protected:

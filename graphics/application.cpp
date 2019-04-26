@@ -19,6 +19,7 @@ Application::~Application()
 	if (m_postProcessing)
 		cleanupPostProcessing();
 	delete m_postShader;
+	// delete the quad, since it's not deleted in cleanupPostProcessing()
 	glDeleteVertexArrays(1, &m_quadVao);
 	glDeleteBuffers(1, &m_quadVbo);
 
@@ -28,6 +29,18 @@ Application::~Application()
 	glfwTerminate();
 }
 
+/*
+	@brief Initializes all window-related things in the class
+			This is used instead of the constructor in order to
+			return an error code
+	@param Title of the window
+	@param Width of the window in pixels
+	@param Height of the window in pixels
+	@param Number of anti aliasing (MSAA) samples
+	@param Whether or not postprocessing should be used
+	@return An error code: 0=success, 1=glfw init fail,
+			2=glfw create window fail, 3=opengl function binding fail
+*/
 int Application::init(char const* title, int width, int height,
 	int msaaSamples, bool postProcessing)
 {
@@ -95,6 +108,9 @@ int Application::init(char const* title, int width, int height,
 	return setup();
 }
 
+/*
+	@brief Runs the game loop while the window is open
+*/
 void Application::loop()
 {
 	glEnable(GL_CULL_FACE);
@@ -142,32 +158,57 @@ void Application::loop()
 	}
 }
 
+/*
+	@brief Called when the window resizes in order to cache the new size
+			Called by the GLFW window size callback, so must be public
+	@param New width of the window
+	@param New height of the window
+*/
 void Application::windowResized(int width, int height)
 {
+	// update gl viewport to fill the whole window
 	glViewport(0, 0, width, height);
+	// cache window size since we use it often
 	m_windowWidth = width;
 	m_windowHeight = height;
+
+	// re-make postprocessing stuff using the new window size
 	if (m_postProcessing)
 		setupPostProcessing();
 }
 
+/*
+	@brief Renders a quad showing the current frame using a shader
+*/
 void Application::drawPost()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+	// bind default framebuffer to draw to the screen
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
 
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	m_postShader->use();
 	glBindVertexArray(m_quadVao);
-	glDisable(GL_DEPTH_TEST);
+
+	// bind framebuffer texture to slot 0
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_itex);
+
+	// bind depth texture to slot 1
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, m_depthTex);
+	// draw quad
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+/*
+	@brief Initializes everything used in post-processing, including the
+			framebuffer and render buffer as well as the quad to draw to.
+			This is also called when the window is resized in order to make
+			a new framebuffer with the correct resolution
+*/
 void Application::setupPostProcessing()
 {
 	bool resized = (m_fbo > 0);
@@ -266,6 +307,7 @@ void Application::setupPostProcessing()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	m_postShader = new ShaderProgram();
+	// write shaders inline so we don't have to find files
 	m_postShader->createShader(
 		ShaderStage::VERTEX,
 		"#version 440 \n\n\
@@ -290,16 +332,28 @@ void main(){\
 	m_postShader->link();
 
 	m_postShader->use();
+	// screen texture will be bound to slot 0
 	m_postShader->bindUniform("screenTexture", 0U);
+	// and depth texture to slot 1
 	m_postShader->bindTexUniform("depthTexture", 1U);
 }
 
+/*
+	@brief A small helper function to clean up the things that need to be
+			re-made when resized
+*/
 void Application::cleanupPostProcessing()
 {
+	// delete multisampled framebuffer
 	glDeleteFramebuffers(1, &m_fbo);
+	// delete intermediate framebuffer
 	glDeleteFramebuffers(1, &m_ifbo);
+	// delete multisampled screen texture
 	glDeleteTextures(1, &m_tex);
+	// delete intermediate screen texture
 	glDeleteTextures(1, &m_itex);
+	// delete depth texture
 	glDeleteTextures(1, &m_depthTex);
+	// delete render buffer
 	glDeleteRenderbuffers(1, &m_rbo);
 }

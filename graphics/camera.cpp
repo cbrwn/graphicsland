@@ -14,7 +14,6 @@ Camera::Camera(glm::vec3 pos, glm::vec2 rot)
 	setLockCursor(true);
 }
 
-// upd8
 void Camera::update(float delta)
 {
 
@@ -98,7 +97,6 @@ void Camera::update(float delta)
 	m_view = glm::inverse(posMatrix*rotMatrix);
 }
 
-// does things
 void Camera::setLockCursor(bool l)
 {
 	GLFWwindow* win = glfwGetCurrentContext();
@@ -124,11 +122,4 @@ void Camera::updateProjectionMatrix(int windowWidth, int windowHeight,
 		near,
 		far
 	);
-}
-
-void Camera::printTransform()
-{
-	printf("Pos: (%.2f, %.2f, %.2f), Rot: (%.2f, %.2f)\n",
-		m_pos.x, m_pos.y, m_pos.z,
-		m_rot.x, m_rot.y);
 }

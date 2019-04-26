@@ -8,7 +8,7 @@ PhongShader::PhongShader() : LitShader()
 
 	use();
 
+	// set default light 
 	setLightCount(1);
-
 	setLight(0, { {10,10,10}, {1,1,1,1}, {1,1,1,1} });
 }
