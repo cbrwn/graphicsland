@@ -19,8 +19,8 @@ FadeoutShader::FadeoutShader() : LitShader()
 
 	use();
 
+	// set default light
 	setLightCount(1);
-
 	setLight(0, { {10,10,10}, {1,1,1,1}, {1,1,1,1} });
 }
 
@@ -31,8 +31,9 @@ FadeoutShader::~FadeoutShader()
 
 void FadeoutShader::beforeDraw()
 {
+	// tell the shader it will be bound to slot 7
 	bindTexUniform("fadeTexture", 7);
 
-	// bind fade texture
+	// bind fade texture to slot 7
 	m_fadeTexture->bind(7);
 }
